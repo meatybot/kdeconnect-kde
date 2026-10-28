@@ -31,6 +31,9 @@ _arguments -s \
   + '(operation)' \
   $blockoperations'--pair[request pairing with the specified device]' \
   $blockoperations'--ring[find the device by ringing it.]' \
+  $blockoperations'--answer-call[answer the call ringing on the device]' \
+  $blockoperations'--reject-call[reject the call ringing on the device]' \
+  $blockoperations'--hang-up[end the current call on the device]' \
   $blockoperations'--unpair[stop pairing to the specified device]' \
   $blockoperations'--ping[send a ping to the device]' \
   $blockoperations'--ping-msg=[send a ping to the device with the specified message]:message' \
@@ -46,6 +49,8 @@ _arguments -s \
   $blockoperations'--request-audio=[play audio from the device here]:source:(media system call microphone)' \
   $blockoperations'--stop-audio[stop all audio streams with the device]' \
   $blockoperations'--list-audio-streams[list audio streams with the device]' \
+  + 'call' \
+  '--call-audio=[where the audio of an answered call goes]:route:(default speaker remote)' \
   + 'sms' \
   '(operation)--send-sms=[send an SMS]:message:' \
   '(operation)--destination=[specify phone number to send the SMS to]:phone number:' \

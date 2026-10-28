@@ -1,13 +1,8 @@
+This plugin forwards the calls of the local ModemManager modems to the device
+as "kdeconnect.telephony" packets, with "event" set to "ringing" or "talking",
+"phoneNumber" and "contactName" set to the number of the call, and "isCancel"
+set to true when the call ends.
 
-This plugin will display a notification each time a package with type
-"kdeconnect.telephony" is received. The type of notification will change
-depending on the contents of the field "event" (string).
-
-Valid contents for "event" are: "ringing", "talking", "missedCall" and "sms".
-
-If the incoming package contains a "phoneNumber" string field, the notification
-will also display it. Note that "phoneNumber" can be a contact name instead
-of an actual phone number.
-
-If the incoming package contains "isCancel" set to true, the package is ignored.
-
+It executes "kdeconnect.telephony.request_action" packets ("answer", "reject",
+"hangup") from the device through the ModemManager Call API and replies with
+"kdeconnect.telephony.action_status". See docs/specs/callhandoff.md.

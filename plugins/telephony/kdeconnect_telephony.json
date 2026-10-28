@@ -155,9 +155,12 @@
         "Name[zh_TW]": "電話整合"
     },
     "X-KdeConnect-OutgoingPacketType": [
-        "kdeconnect.telephony.request_mute"
+        "kdeconnect.telephony.request_mute",
+        "kdeconnect.telephony.request_action",
+        "kdeconnect.audiostream.request"
     ],
     "X-KdeConnect-SupportedPacketType": [
-        "kdeconnect.telephony"
+        "kdeconnect.telephony",
+        "kdeconnect.telephony.action_status"
     ]
 }

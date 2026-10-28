@@ -1,15 +1,20 @@
-
 This plugin will display a notification each time a package with type
 "kdeconnect.telephony" is received. The type of notification will change
 depending on the contents of the field "event" (string).
 
 Valid contents for "event" are: "ringing", "talking", "missedCall" and "sms".
-Note that "talking" is just ignored in this implementation, while the others
-will display a system notification.
+"sms" is ignored. "talking" replaces the ringing notification with a "call in
+progress" one if the device supports call actions, otherwise it is ignored.
 
 If the incoming package contains a "phoneNumber" string field, the notification
 will also display it. Note that "phoneNumber" can be a contact name instead
 of an actual phone number.
 
-If the incoming package contains "isCancel" set to true, the package is ignored.
+If the incoming package contains "isCancel" set to true, the call notification
+is closed.
 
+If the device supports "kdeconnect.telephony.request_action", the notifications
+offer Answer / Reject / Hang up (also available over DBus and kdeconnect-cli),
+and the device replies with "kdeconnect.telephony.action_status". Answering
+with audio on this computer requests a "call" stream from the audiostream
+plugin of the device. See docs/specs/callhandoff.md for the protocol.
