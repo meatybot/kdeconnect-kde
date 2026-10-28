@@ -65,6 +65,116 @@ Kirigami.ScrollablePage
             }
         }
 
+        FormCard.FormHeader {
+            title: i18nc("@title:group", "Relay server")
+        }
+
+        FormCard.FormCard {
+            DBusProperty {
+                id: relayServerProperty
+                object: DaemonDbusInterface
+                read: "relayServer"
+                defaultValue: ""
+            }
+            DBusProperty {
+                id: relayStatusProperty
+                object: DaemonDbusInterface
+                read: "relayStatus"
+                defaultValue: "disabled"
+            }
+            DBusProperty {
+                id: relayKeyProperty
+                object: DaemonDbusInterface
+                read: "relayKey"
+                defaultValue: ""
+            }
+            // The fingerprint never changes while the daemon runs, fetch it once
+            DBusAsyncResponse {
+                id: selfFingerprintResponse
+                property string value: ""
+                autoDelete: false
+                onSuccess: result => {
+                    value = result;
+                }
+                Component.onCompleted: setPendingCall(DaemonDbusInterface.selfFingerprint())
+            }
+
+            DBusAsyncResponse {
+                id: setRelayServerResponse
+                autoDelete: false
+                onSuccess: result => {
+                    relayServerField.statusMessage = result ? "" : i18n("Invalid address");
+                }
+            }
+
+            DBusAsyncResponse {
+                id: connectResponse
+                autoDelete: false
+                onSuccess: result => {
+                    if (result) {
+                        connectTargetField.statusMessage = i18n("Pairing will be requested once the device is reachable. Compare the verification key on both devices.");
+                        connectTargetField.text = "";
+                    } else {
+                        connectTargetField.statusMessage = i18n("Not a valid relay key or fingerprint");
+                    }
+                }
+            }
+
+            FormCard.FormTextFieldDelegate {
+                id: relayServerField
+                label: i18n("Relay server address")
+                placeholderText: i18nc("@info:placeholder", "host:port")
+                text: relayServerProperty.value
+                status: Kirigami.MessageType.Error
+                onAccepted: setRelayServerResponse.setPendingCall(DaemonDbusInterface.setRelayServer(text))
+            }
+
+            FormCard.FormDelegateSeparator {}
+
+            FormCard.FormTextDelegate {
+                text: i18n("Relay status")
+                description: {
+                    switch (relayStatusProperty.value) {
+                    case "registered":
+                        return i18nc("@info relay status", "Connected");
+                    case "connecting":
+                        return i18nc("@info relay status", "Connecting...");
+                    case "offline":
+                        return i18nc("@info relay status", "Unreachable, retrying");
+                    default:
+                        return i18nc("@info relay status", "Not in use");
+                    }
+                }
+            }
+
+            FormCard.FormDelegateSeparator {}
+
+            FormCard.FormTextFieldDelegate {
+                label: i18n("Your relay key")
+                readOnly: true
+                text: relayKeyProperty.value
+                placeholderText: i18nc("@info:placeholder", "Available once connected to a relay server")
+            }
+
+            FormCard.FormDelegateSeparator {}
+
+            FormCard.FormTextFieldDelegate {
+                label: i18n("Your certificate fingerprint")
+                readOnly: true
+                text: selfFingerprintResponse.value
+            }
+
+            FormCard.FormDelegateSeparator {}
+
+            FormCard.FormTextFieldDelegate {
+                id: connectTargetField
+                label: i18n("Connect to device")
+                placeholderText: i18nc("@info:placeholder", "Relay key or certificate fingerprint")
+                status: Kirigami.MessageType.Information
+                onAccepted: connectResponse.setPendingCall(DaemonDbusInterface.connectToDevice(text))
+            }
+        }
+
         FormCard.FormCard {
             Layout.topMargin: Kirigami.Units.gridUnit
 

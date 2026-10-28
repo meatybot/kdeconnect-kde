@@ -356,6 +356,17 @@ QStringList KdeConnectConfig::customDevices() const
     return d->m_config->value(QStringLiteral("customDevices")).toStringList();
 }
 
+void KdeConnectConfig::setRelayServer(const QString &address)
+{
+    d->m_config->setValue(QStringLiteral("relayServer"), address);
+    d->m_config->sync();
+}
+
+QString KdeConnectConfig::relayServer() const
+{
+    return d->m_config->value(QStringLiteral("relayServer")).toString();
+}
+
 QDir KdeConnectConfig::deviceConfigDir(const QString &deviceId)
 {
     QString deviceConfigPath = baseConfigDir().absoluteFilePath(deviceId);

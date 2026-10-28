@@ -1,0 +1,9 @@
+set(backends_kdeconnect_SRCS
+    ${backends_kdeconnect_SRCS}
+    backends/relay/relayprotocol.cpp
+    backends/relay/relayconnection.cpp
+    backends/relay/relaytunnelsocket.cpp
+    backends/relay/relaylinkprovider.cpp
+    backends/relay/relaydevicelink.cpp
+    PARENT_SCOPE
+)

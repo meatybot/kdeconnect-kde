@@ -11,11 +11,13 @@
 #include <QSslKey>
 #include <QString>
 
+#include "kdeconnectcore_export.h"
+
 namespace SslHelper
 {
-QSslKey generateEcPrivateKey();
-QSslKey generateRsaPrivateKey();
-QSslCertificate generateSelfSignedCertificate(const QSslKey &privateKey, const QString &commonName);
+KDECONNECTCORE_EXPORT QSslKey generateEcPrivateKey();
+KDECONNECTCORE_EXPORT QSslKey generateRsaPrivateKey();
+KDECONNECTCORE_EXPORT QSslCertificate generateSelfSignedCertificate(const QSslKey &privateKey, const QString &commonName);
 }
 
 #endif

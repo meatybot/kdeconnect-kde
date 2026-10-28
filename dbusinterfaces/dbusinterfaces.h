@@ -37,6 +37,7 @@ class KDECONNECTDBUSINTERFACES_EXPORT DaemonDbusInterface : public OrgKdeKdeconn
 {
     Q_OBJECT
     Q_PROPERTY(QStringList customDevices READ customDevices WRITE setCustomDevices NOTIFY customDevicesChangedProxy)
+    Q_PROPERTY(QString relayServer READ relayServer NOTIFY relayServerChangedProxy)
 public:
     explicit DaemonDbusInterface(QObject *parent = nullptr);
 
@@ -44,6 +45,7 @@ public:
 
 Q_SIGNALS:
     void customDevicesChangedProxy();
+    void relayServerChangedProxy();
 };
 
 class KDECONNECTDBUSINTERFACES_EXPORT DeviceDbusInterface : public OrgKdeKdeconnectDeviceInterface
