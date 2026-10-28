@@ -1,8 +1,7 @@
 /*
  * SPDX-FileCopyrightText: 2015 Aleix Pol Gonzalez <aleixpol@kde.org>
  *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR
- * LicenseRef-KDE-Accepted-GPL
+ * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
  */
 
 #include <QCoreApplication>
@@ -35,9 +34,7 @@ QString getDevice(DaemonDbusInterface &iface, const QCommandLineParser &parser)
     }
     if (device.isEmpty()) {
         QTextStream(stderr) << i18n(
-            "No device specified: Use -d <Device ID> or -n <Device Name> "
-            "to specify a device. \nDevice ID's and names may be found "
-            "using \"kdeconnect-cli "
+            "No device specified: Use -d <Device ID> or -n <Device Name> to specify a device. \nDevice ID's and names may be found using \"kdeconnect-cli "
             "-l\" \nView complete help with --help option")
                             << Qt::endl;
         return QString();
@@ -73,15 +70,12 @@ int main(int argc, char **argv)
     parser.addOption(QCommandLineOption(QStringList{QStringLiteral("b"), QStringLiteral("list-backends")}, i18n("List all backends and status")));
     parser.addOption(QCommandLineOption(QStringLiteral("enable-backend"), i18n("Enable the specified backend"), i18n("backend")));
     parser.addOption(QCommandLineOption(QStringLiteral("disable-backend"), i18n("Disable the specified backend"), i18n("backend")));
-    parser.addOption(QCommandLineOption(QStringLiteral("id-only"),
-                                        i18n("Make --list-devices or --list-available print "
-                                             "only the devices id, to ease scripting")));
-    parser.addOption(QCommandLineOption(QStringLiteral("name-only"),
-                                        i18n("Make --list-devices or --list-available print "
-                                             "only the devices name, to ease scripting")));
+    parser.addOption(
+        QCommandLineOption(QStringLiteral("id-only"), i18n("Make --list-devices or --list-available print only the devices id, to ease scripting")));
+    parser.addOption(
+        QCommandLineOption(QStringLiteral("name-only"), i18n("Make --list-devices or --list-available print only the devices name, to ease scripting")));
     parser.addOption(QCommandLineOption(QStringLiteral("id-name-only"),
-                                        i18n("Make --list-devices or --list-available print only the devices id "
-                                             "and name, to ease scripting")));
+                                        i18n("Make --list-devices or --list-available print only the devices id and name, to ease scripting")));
     parser.addOption(QCommandLineOption(QStringLiteral("refresh"), i18n("Search for devices in the network and re-establish connections")));
     parser.addOption(QCommandLineOption(QStringLiteral("pair"), i18n("Request pairing with device")));
     parser.addOption(QCommandLineOption(QStringLiteral("ring"), i18n("Find device by ringing it")));
@@ -103,8 +97,7 @@ int main(int argc, char **argv)
     parser.addOption(QCommandLineOption(QStringLiteral("send-sms"), i18n("Sends an SMS. Requires destination"), i18n("message")));
     parser.addOption(QCommandLineOption(QStringLiteral("destination"), i18n("Phone number to send the message"), i18n("phone number")));
     parser.addOption(QCommandLineOption(QStringLiteral("attachment"),
-                                        i18n("File URLs to send attachments with the message "
-                                             "(can be passed multiple times)"),
+                                        i18n("File URLs to send attachments with the message (can be passed multiple times)"),
                                         i18n("file URLs")));
     parser.addOption(QCommandLineOption(QStringList{QStringLiteral("device"), QStringLiteral("d")}, i18n("Device ID"), QStringLiteral("dev")));
     parser.addOption(QCommandLineOption(QStringList{QStringLiteral("name"), QStringLiteral("n")}, i18n("Device Name"), QStringLiteral("name")));
@@ -141,8 +134,7 @@ int main(int argc, char **argv)
     QCommandLineOption deviceAutocomplete(QStringLiteral("shell-device-autocompletion"));
     deviceAutocomplete.setFlags(QCommandLineOption::HiddenFromHelp);
     deviceAutocomplete.setDescription(
-        QStringLiteral("Outputs all available devices id's with their name and "
-                       "paired status")); // Not visible, so no translation needed
+        QStringLiteral("Outputs all available devices id's with their name and paired status")); // Not visible, so no translation needed
     deviceAutocomplete.setValueName(QStringLiteral("shell"));
     parser.addOption(deviceAutocomplete);
     aboutData.setupCommandLine(&parser);
@@ -184,12 +176,8 @@ int main(int argc, char **argv)
                 if (isReachable) {
                     const QString addresses = deviceIface.reachableAddresses().join(QStringLiteral(", "));
                     const QString providers = deviceIface.activeProviderNames().join(QStringLiteral(", "));
-                    QTextStream(stdout) << i18nc(
-                        "Details on how a device is connected "
-                        "eg: on <network address> via Bluetooth",
-                        "on %1 via %2",
-                        addresses,
-                        providers) << ' ';
+                    QTextStream(stdout)
+                        << i18nc("Details on how a device is connected eg: on <network address> via Bluetooth", "on %1 via %2", addresses, providers) << ' ';
                 }
                 if (isReachable && isPaired) {
                     QTextStream(stdout) << i18n("(paired and reachable)") << Qt::endl;
@@ -229,8 +217,7 @@ int main(int argc, char **argv)
             QTextStream(stdout) << backend << Qt::endl;
         }
     } else if (parser.isSet(QStringLiteral("shell-device-autocompletion"))) {
-        // Outputs a list of reachable devices in zsh autocomplete format, with the
-        // name as description
+        // Outputs a list of reachable devices in zsh autocomplete format, with the name as description
         const QStringList devices = blockOnReply<QStringList>(iface.devices(true, false));
         for (const QString &id : devices) {
             DeviceDbusInterface deviceIface(id);
@@ -334,8 +321,7 @@ int main(int argc, char **argv)
 
         DeviceDbusInterface dev(device);
         if (!dev.isReachable()) {
-            // Device doesn't exist, go into discovery mode and wait up to 30 seconds
-            // for the device to appear
+            // Device doesn't exist, go into discovery mode and wait up to 30 seconds for the device to appear
             QEventLoop wait;
             QTextStream(stderr) << i18n("waiting for device…") << Qt::endl;
 
@@ -424,10 +410,7 @@ int main(int argc, char **argv)
 
             reply.waitForFinished();
         } else {
-            QTextStream(stderr) << i18n(
-                "error: should specify the SMS's recipient "
-                "by passing --destination <phone number>")
-                                << Qt::endl;
+            QTextStream(stderr) << i18n("error: should specify the SMS's recipient by passing --destination <phone number>") << Qt::endl;
             return 1;
         }
     } else if (parser.isSet(QStringLiteral("stream-audio")) || parser.isSet(QStringLiteral("request-audio"))) {
