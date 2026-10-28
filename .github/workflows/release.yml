@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+#
+# For a pushed v* tag: runs the Linux test suite, builds a Flatpak bundle and a source
+# tarball, and publishes them as a GitHub release.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to (re)build and publish
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel cmake ninja git extra-cmake-modules \
+            qt6-base qt6-declarative qt6-multimedia qt6-connectivity qt6-wayland qt6-tools \
+            kcoreaddons kconfig ki18n kitemmodels kcontacts kirigami kdbusaddons knotifications \
+            kiconthemes kio kcmutils kservice solid kpeople kwindowsystem qqc2-desktop-style \
+            kirigami-addons kpackage kstatusnotifieritem pulseaudio-qt plasma-wayland-protocols \
+            modemmanager-qt kcolorscheme kguiaddons kcrash kwidgetsaddons wayland wayland-protocols \
+            libfakekey libxtst qca-qt6 kdoctools xorg-server-xvfb dbus libpulse pipewire \
+            gst-plugins-base gst-plugins-good gstreamer opus libei libxkbcommon xdg-desktop-portal
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+      - run: cmake --build build
+      - working-directory: build
+        run: dbus-run-session -- xvfb-run -a ctest --output-on-failure
+
+  flatpak:
+    needs: test
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
+        with:
+          bundle: kdeconnect-${{ env.TAG }}-x86_64.flatpak
+          manifest-path: packaging/flatpak/org.kde.kdeconnect.json
+          cache-key: flatpak-builder-${{ github.sha }}
+          upload-artifact: true
+
+  publish:
+    needs: flatpak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Source tarball and checksums
+        run: |
+          git archive --format=tar.gz --prefix="kdeconnect-kde-$TAG/" -o "dist/kdeconnect-kde-$TAG.tar.gz" HEAD
+          cd dist && sha256sum * > SHA256SUMS && ls -la
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag
+          gh release upload "$TAG" dist/* --clobber

@@ -1,0 +1,74 @@
+{
+    "id": "org.kde.kdeconnect",
+    "runtime": "org.kde.Platform",
+    "runtime-version": "6.10",
+    "sdk": "org.kde.Sdk",
+    "command": "kdeconnect-app",
+    "finish-args": [
+        "--share=ipc",
+        "--share=network",
+        "--socket=x11",
+        "--socket=wayland",
+        "--socket=pulseaudio",
+        "--device=dri",
+        "--socket=session-bus",
+        "--filesystem=xdg-download"
+    ],
+    "rename-desktop-file": "org.kde.kdeconnect.nonplasma.desktop",
+    "cleanup": ["/include", "/lib/pkgconfig", "/lib/cmake", "/share/pkgconfig", "*.a", "*.la",
+                "/bin/ei-debug-events", "/bin/libevdev-tweak-device", "/bin/mouse-dpi-tool", "/bin/touchpad-edge-detector"],
+    "modules": [
+        {
+            "name": "python3-jinja2",
+            "buildsystem": "simple",
+            "build-commands": ["pip3 install --no-index --no-build-isolation --find-links=. --prefix=/app jinja2"],
+            "cleanup": ["*"],
+            "sources": [
+                {"type": "file", "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl", "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"}
+            ]
+        },
+        {
+            "name": "libfakekey",
+            "buildsystem": "autotools",
+            "make-args": ["AM_LDFLAGS=-lX11"],
+            "config-opts": ["--disable-static"],
+            "sources": [{"type": "git", "url": "https://git.yoctoproject.org/libfakekey", "tag": "0.3", "commit": "7ad885912efb2131e80914e964d5e635b0d07b40"}]
+        },
+        {
+            "name": "libevdev",
+            "buildsystem": "meson",
+            "config-opts": ["-Dtests=disabled", "-Ddocumentation=disabled"],
+            "sources": [{"type": "git", "url": "https://gitlab.freedesktop.org/libevdev/libevdev.git", "tag": "libevdev-1.14.0", "commit": "a7ac8c5d5cebba716ca702259512d03076243f83"}]
+        },
+        {
+            "name": "libei",
+            "buildsystem": "meson",
+            "build-options": {"env": {"PYTHONPATH": "/app/lib/python3.13/site-packages"}},
+            "config-opts": ["-Dtests=disabled", "-Dliboeffis=disabled", "-Ddocumentation=[]"],
+            "sources": [{"type": "git", "url": "https://gitlab.freedesktop.org/libinput/libei.git", "tag": "1.6.0", "commit": "a22e2efad930477d418faf14fee405bbac2c2d04"}]
+        },
+        {
+            "name": "plasma-wayland-protocols",
+            "buildsystem": "cmake-ninja",
+            "sources": [{"type": "git", "url": "https://invent.kde.org/libraries/plasma-wayland-protocols.git", "tag": "v1.23.0", "commit": "de088ef1c6115d9a4c8eab3dd00516959586721f"}]
+        },
+        {
+            "name": "pulseaudio-qt",
+            "buildsystem": "cmake-ninja",
+            "config-opts": ["-DBUILD_TESTING=OFF"],
+            "sources": [{"type": "git", "url": "https://invent.kde.org/libraries/pulseaudio-qt.git", "tag": "v1.9.0", "commit": "254bf107b9499d691a0d1e744be0891628d8784b"}]
+        },
+        {
+            "name": "kpeople",
+            "buildsystem": "cmake-ninja",
+            "config-opts": ["-DBUILD_TESTING=OFF"],
+            "sources": [{"type": "git", "url": "https://invent.kde.org/frameworks/kpeople.git", "tag": "v6.29.0", "commit": "7e3cc117ed99c353f7513e2ad08b945eb257dc84"}]
+        },
+        {
+            "name": "kdeconnect",
+            "buildsystem": "cmake-ninja",
+            "config-opts": ["-DCMAKE_BUILD_TYPE=Release", "-DBUILD_TESTING=OFF"],
+            "sources": [{"type": "dir", "path": "../.."}]
+        }
+    ]
+}
