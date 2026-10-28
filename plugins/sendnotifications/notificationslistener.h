@@ -13,9 +13,8 @@
 #include <QSharedPointer>
 
 class KdeConnectPlugin;
+class NetworkPacket;
 struct NotifyingApplication;
-
-#define PACKET_TYPE_NOTIFICATION QStringLiteral("kdeconnect.notification")
 
 class NotificationsListener : public QObject
 {
@@ -25,10 +24,14 @@ public:
     explicit NotificationsListener(KdeConnectPlugin *aPlugin);
     ~NotificationsListener() override;
 
+    // Packets from the peer interacting with notifications we forwarded
+    virtual void handlePacket(const NetworkPacket &np);
+
 protected:
     bool checkApplicationName(const QString &appName, const QString iconName);
     bool checkIsInBlacklist(const QString &appName, const QString &content);
     QSharedPointer<QIODevice> iconFromQImage(const QImage &image) const;
+    static QByteArray pngFromQImage(const QImage &image);
 
     KdeConnectPlugin *m_plugin;
 

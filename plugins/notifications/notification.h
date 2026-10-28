@@ -35,6 +35,7 @@ class Notification : public QObject
     Q_PROPERTY(bool hasIcon READ hasIcon NOTIFY ready)
     Q_PROPERTY(bool silent READ silent NOTIFY ready)
     Q_PROPERTY(QString replyId READ replyId NOTIFY ready)
+    Q_PROPERTY(QStringList actions READ actions NOTIFY ready)
 
 public:
     Notification(const NetworkPacket &np, const Device *device, QObject *parent);
@@ -75,6 +76,10 @@ public:
     {
         return m_requestReplyId;
     }
+    QStringList actions() const
+    {
+        return m_actions;
+    }
     bool hasIcon() const
     {
         return m_hasIcon;
@@ -108,7 +113,8 @@ Q_SIGNALS:
     void dismissRequested(const QString &m_internalId);
     void replyRequested();
     Q_SCRIPTABLE void ready();
-    void actionTriggered(const QString &key, const QString &action);
+    // actionId is empty if the peer only sent labels
+    void actionTriggered(const QString &key, const QString &action, const QString &actionId);
     void replied(const QString &message);
 
 private:
@@ -128,6 +134,9 @@ private:
     QString m_payloadHash;
     bool m_ready;
     QStringList m_actions;
+    QStringList m_actionIds; // Same size as m_actions, or empty
+    bool m_hasDefaultAction = false;
+    int m_urgency = -1;
     QJsonArray m_conversation;
     const Device *m_device;
 

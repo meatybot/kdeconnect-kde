@@ -134,12 +134,32 @@ void Notification::createKNotification(const NetworkPacket &np)
     }
 
     m_notification->clearActions();
-    for (const QString &actionId : std::as_const(m_actions)) {
-        KNotificationAction *action = m_notification->addAction(actionId);
+    for (qsizetype i = 0; i < m_actions.size(); ++i) {
+        const QString label = m_actions.at(i);
+        const QString actionId = m_actionIds.value(i);
+        KNotificationAction *action = m_notification->addAction(label);
 
-        connect(action, &KNotificationAction::activated, this, [this, actionId] {
-            Q_EMIT actionTriggered(m_internalId, actionId);
+        connect(action, &KNotificationAction::activated, this, [this, label, actionId] {
+            Q_EMIT actionTriggered(m_internalId, label, actionId);
         });
+    }
+    if (m_hasDefaultAction) {
+        KNotificationAction *action = m_notification->addDefaultAction(i18nc("@action:button", "Open"));
+        connect(action, &KNotificationAction::activated, this, [this] {
+            Q_EMIT actionTriggered(m_internalId, QString(), QStringLiteral("default"));
+        });
+    }
+
+    switch (m_urgency) {
+    case 0:
+        m_notification->setUrgency(KNotification::LowUrgency);
+        break;
+    case 2:
+        m_notification->setUrgency(KNotification::CriticalUrgency);
+        break;
+    default:
+        m_notification->setUrgency(KNotification::DefaultUrgency);
+        break;
     }
 
     m_notification->setPixmap({});
@@ -255,12 +275,13 @@ void Notification::parseNetworkPacket(const NetworkPacket &np)
     }
 
     m_hasIcon = !m_payloadHash.isEmpty();
-    m_actions.clear();
-
-    const auto actions = np.get<QJsonArray>(QStringLiteral("actions"));
-    for (const QJsonValue &value : actions) {
-        m_actions.append(value.toString());
+    m_actions = np.get<QStringList>(QStringLiteral("actions"));
+    m_actionIds = np.get<QStringList>(QStringLiteral("actionIds"));
+    if (m_actionIds.size() != m_actions.size()) {
+        m_actionIds.clear();
     }
+    m_hasDefaultAction = np.get<bool>(QStringLiteral("hasDefaultAction"), false);
+    m_urgency = np.get<int>(QStringLiteral("urgency"), -1);
 }
 
 #include "moc_notification.cpp"

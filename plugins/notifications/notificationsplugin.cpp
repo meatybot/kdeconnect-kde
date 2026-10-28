@@ -99,7 +99,7 @@ void NotificationsPlugin::addNotification(Notification *noti)
         replyRequested(noti);
     });
 
-    connect(noti, &Notification::actionTriggered, this, &NotificationsPlugin::sendAction);
+    connect(noti, &Notification::actionTriggered, this, &NotificationsPlugin::sendActionWithId);
     connect(noti, &Notification::replied, this, [this, noti](const QString &message) {
         sendReply(noti->replyId(), message);
     });
@@ -177,9 +177,17 @@ void NotificationsPlugin::sendReply(const QString &replyId, const QString &messa
 
 void NotificationsPlugin::sendAction(const QString &key, const QString &action)
 {
+    sendActionWithId(key, action, QString());
+}
+
+void NotificationsPlugin::sendActionWithId(const QString &key, const QString &action, const QString &actionId)
+{
     NetworkPacket np(PACKET_TYPE_NOTIFICATION_ACTION);
     np.set<QString>(QStringLiteral("key"), key);
     np.set<QString>(QStringLiteral("action"), action);
+    if (!actionId.isEmpty()) {
+        np.set<QString>(QStringLiteral("actionId"), actionId);
+    }
     sendPacket(np);
 
     copyAuthCodeIfPresent(action);

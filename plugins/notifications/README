@@ -18,6 +18,16 @@ The received packets will contain the following fields:
     "text" (string): The text/content of the notification.
     "requestReplyId" (string): Used to reply to messages.
     "silent" (bool): Don't show a notification popup for this notification.
+    "actions" (JSONArray of strings): Labels of the action buttons.
+    "actionIds" (JSONArray of strings, optional): Ids of the actions, same order as "actions".
+    "hasDefaultAction" (bool, optional): Activating the notification invokes the "default" action.
+    "urgency" (int, optional): 0 low, 1 normal, 2 critical.
+    "progress" (int, optional): 0-100.
+    "category" (string, optional): freedesktop notification category.
+
+Invoking an action sends "kdeconnect.notification.action" with "key" (the id),
+"action" (the label) and, if the notification had "actionIds" or a default
+action, "actionId". See docs/specs/richnotifications.md.
 
 Additionally the packet can contain a payload with the icon of the notification
 in PNG format. If there another field will be present:

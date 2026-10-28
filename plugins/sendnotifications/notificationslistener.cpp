@@ -17,6 +17,7 @@
 #include "plugin_sendnotifications_debug.h"
 #include <core/kdeconnectplugin.h>
 #include <core/kdeconnectpluginconfig.h>
+#include <core/networkpacket.h>
 
 NotificationsListener::NotificationsListener(KdeConnectPlugin *aPlugin)
     : QObject(aPlugin)
@@ -30,6 +31,11 @@ NotificationsListener::NotificationsListener(KdeConnectPlugin *aPlugin)
 NotificationsListener::~NotificationsListener()
 {
     qCDebug(KDECONNECT_PLUGIN_SENDNOTIFICATIONS) << "Destroying NotificationsListener";
+}
+
+void NotificationsListener::handlePacket(const NetworkPacket &np)
+{
+    qCDebug(KDECONNECT_PLUGIN_SENDNOTIFICATIONS) << "Interacting with forwarded notifications is not supported on this platform, ignoring" << np.type();
 }
 
 void NotificationsListener::loadApplications()
@@ -78,13 +84,29 @@ bool NotificationsListener::checkIsInBlacklist(const QString &appName, const QSt
 
 QSharedPointer<QIODevice> NotificationsListener::iconFromQImage(const QImage &image) const
 {
-    QSharedPointer<QBuffer> buffer = QSharedPointer<QBuffer>(new QBuffer);
-    if (!buffer->open(QIODevice::WriteOnly) && !image.save(buffer.data(), "PNG")) {
-        qCWarning(KDECONNECT_PLUGIN_SENDNOTIFICATIONS) << "Could not initialize image buffer";
+    const QByteArray png = pngFromQImage(image);
+    if (png.isEmpty()) {
         return QSharedPointer<QIODevice>();
     }
 
+    auto buffer = QSharedPointer<QBuffer>::create();
+    buffer->setData(png);
     return buffer;
+}
+
+QByteArray NotificationsListener::pngFromQImage(const QImage &image)
+{
+    if (image.isNull()) {
+        return QByteArray();
+    }
+
+    QByteArray png;
+    QBuffer buffer(&png);
+    if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG")) {
+        qCWarning(KDECONNECT_PLUGIN_SENDNOTIFICATIONS) << "Could not encode notification image";
+        return QByteArray();
+    }
+    return png;
 }
 
 #include "moc_notificationslistener.cpp"
