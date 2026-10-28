@@ -156,6 +156,7 @@
         "kdeconnect.notification"
     ],
     "X-KdeConnect-SupportedPacketType": [
-        "kdeconnect.notification.request"
+        "kdeconnect.notification.request",
+        "kdeconnect.notification.action"
     ]
 }

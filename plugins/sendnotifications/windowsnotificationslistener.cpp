@@ -5,6 +5,7 @@
  */
 
 #include "windowsnotificationslistener.h"
+#include "forwardednotifications.h"
 
 #include <QImage>
 

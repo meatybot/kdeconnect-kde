@@ -4,6 +4,7 @@ target_sources(kdeconnect_sendnotifications PRIVATE
     sendnotificationsplugin.cpp
     notificationslistener.cpp
     notifyingapplication.cpp
+    forwardednotifications.cpp
 )
 
 add_subdirectory(pw_libnotificationmanager)
@@ -22,7 +23,7 @@ target_sources(kdeconnect_sendnotifications PRIVATE windowsnotificationslistener
 target_link_libraries(kdeconnect_sendnotifications runtimeobject windowsapp)
 else()
 target_sources(kdeconnect_sendnotifications PRIVATE dbusnotificationslistener.cpp)
-target_link_libraries(kdeconnect_sendnotifications PkgConfig::DBus)
+target_link_libraries(kdeconnect_sendnotifications PkgConfig::DBus Qt::DBus)
 endif()
 
 install(FILES "kdeconnect_sendnotifications_config.qml" DESTINATION ${KDE_INSTALL_DATADIR}/kdeconnect)

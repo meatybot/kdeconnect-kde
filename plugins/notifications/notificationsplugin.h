@@ -36,6 +36,8 @@ public Q_SLOTS:
     Q_SCRIPTABLE QStringList activeNotifications();
     Q_SCRIPTABLE void sendReply(const QString &replyId, const QString &message);
     Q_SCRIPTABLE void sendAction(const QString &key, const QString &action);
+    // actionId is only understood by peers that sent "actionIds", others match on the label
+    Q_SCRIPTABLE void sendActionWithId(const QString &key, const QString &action, const QString &actionId);
 
 Q_SIGNALS:
     Q_SCRIPTABLE void notificationPosted(const QString &publicId);

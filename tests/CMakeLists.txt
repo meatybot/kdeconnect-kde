@@ -45,3 +45,7 @@ endif()
 
 # Do not touch the clipboard of the running session (and avoid a KSystemClipboard deadlock on exit under Wayland)
 set_tests_properties(notificationstest pluginloadtest telephonytest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+ecm_add_test(richnotificationstest.cpp LINK_LIBRARIES ${kdeconnect_libraries})
+target_sources(richnotificationstest PRIVATE ${CMAKE_SOURCE_DIR}/plugins/sendnotifications/forwardednotifications.cpp)
+set_tests_properties(richnotificationstest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

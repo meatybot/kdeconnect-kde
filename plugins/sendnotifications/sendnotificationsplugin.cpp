@@ -5,6 +5,7 @@
  */
 
 #include "sendnotificationsplugin.h"
+#include "notificationslistener.h"
 #include "notifyingapplication.h"
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
@@ -37,6 +38,13 @@ SendNotificationsPlugin::SendNotificationsPlugin(QObject *parent, const QVariant
 SendNotificationsPlugin::~SendNotificationsPlugin()
 {
     delete notificationsListener;
+}
+
+void SendNotificationsPlugin::receivePacket(const NetworkPacket &np)
+{
+    if (notificationsListener) {
+        notificationsListener->handlePacket(np);
+    }
 }
 
 #include "moc_sendnotificationsplugin.cpp"

@@ -24,6 +24,8 @@ public:
     explicit SendNotificationsPlugin(QObject *parent, const QVariantList &args);
     ~SendNotificationsPlugin() override;
 
+    void receivePacket(const NetworkPacket &np) override;
+
 protected:
-    NotificationsListener *notificationsListener;
+    NotificationsListener *notificationsListener = nullptr;
 };
