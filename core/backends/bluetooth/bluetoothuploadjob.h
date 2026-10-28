@@ -2,7 +2,8 @@
  * SPDX-FileCopyrightText: 2016 Saikrishna Arcot <saiarcot895@gmail.com>
  * SPDX-FileCopyrightText: 2018 Matthijs TIjink <matthijstijink@gmail.com>
  *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+ * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR
+ * LicenseRef-KDE-Accepted-GPL
  */
 
 #ifndef BLUETOOTHUPLOADJOB_H
@@ -23,13 +24,14 @@ class BluetoothUploadJob : public QObject
 {
     Q_OBJECT
 public:
-    explicit BluetoothUploadJob(const QSharedPointer<QIODevice> &data, ConnectionMultiplexer *connection, QObject *parent = nullptr);
+    explicit BluetoothUploadJob(const QSharedPointer<QIODevice> &data, qint64 size, ConnectionMultiplexer *connection, QObject *parent = nullptr);
 
     QVariantMap transferInfo() const;
     void start();
 
 private:
     QSharedPointer<QIODevice> mData;
+    const bool mLiveStream;
     QBluetoothUuid mTransferUuid;
     QSharedPointer<MultiplexChannel> mSocket;
 

@@ -1,7 +1,8 @@
 /*
  * SPDX-FileCopyrightText: 2015 Aleix Pol Gonzalez <aleixpol@kde.org>
  *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+ * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR
+ * LicenseRef-KDE-Accepted-GPL
  */
 
 #include <QCoreApplication>
@@ -34,7 +35,9 @@ QString getDevice(DaemonDbusInterface &iface, const QCommandLineParser &parser)
     }
     if (device.isEmpty()) {
         QTextStream(stderr) << i18n(
-            "No device specified: Use -d <Device ID> or -n <Device Name> to specify a device. \nDevice ID's and names may be found using \"kdeconnect-cli "
+            "No device specified: Use -d <Device ID> or -n <Device Name> "
+            "to specify a device. \nDevice ID's and names may be found "
+            "using \"kdeconnect-cli "
             "-l\" \nView complete help with --help option")
                             << Qt::endl;
         return QString();
@@ -70,12 +73,15 @@ int main(int argc, char **argv)
     parser.addOption(QCommandLineOption(QStringList{QStringLiteral("b"), QStringLiteral("list-backends")}, i18n("List all backends and status")));
     parser.addOption(QCommandLineOption(QStringLiteral("enable-backend"), i18n("Enable the specified backend"), i18n("backend")));
     parser.addOption(QCommandLineOption(QStringLiteral("disable-backend"), i18n("Disable the specified backend"), i18n("backend")));
-    parser.addOption(
-        QCommandLineOption(QStringLiteral("id-only"), i18n("Make --list-devices or --list-available print only the devices id, to ease scripting")));
-    parser.addOption(
-        QCommandLineOption(QStringLiteral("name-only"), i18n("Make --list-devices or --list-available print only the devices name, to ease scripting")));
+    parser.addOption(QCommandLineOption(QStringLiteral("id-only"),
+                                        i18n("Make --list-devices or --list-available print "
+                                             "only the devices id, to ease scripting")));
+    parser.addOption(QCommandLineOption(QStringLiteral("name-only"),
+                                        i18n("Make --list-devices or --list-available print "
+                                             "only the devices name, to ease scripting")));
     parser.addOption(QCommandLineOption(QStringLiteral("id-name-only"),
-                                        i18n("Make --list-devices or --list-available print only the devices id and name, to ease scripting")));
+                                        i18n("Make --list-devices or --list-available print only the devices id "
+                                             "and name, to ease scripting")));
     parser.addOption(QCommandLineOption(QStringLiteral("refresh"), i18n("Search for devices in the network and re-establish connections")));
     parser.addOption(QCommandLineOption(QStringLiteral("pair"), i18n("Request pairing with device")));
     parser.addOption(QCommandLineOption(QStringLiteral("ring"), i18n("Find device by ringing it")));
@@ -91,7 +97,8 @@ int main(int argc, char **argv)
     parser.addOption(QCommandLineOption(QStringLiteral("send-sms"), i18n("Sends an SMS. Requires destination"), i18n("message")));
     parser.addOption(QCommandLineOption(QStringLiteral("destination"), i18n("Phone number to send the message"), i18n("phone number")));
     parser.addOption(QCommandLineOption(QStringLiteral("attachment"),
-                                        i18n("File URLs to send attachments with the message (can be passed multiple times)"),
+                                        i18n("File URLs to send attachments with the message "
+                                             "(can be passed multiple times)"),
                                         i18n("file URLs")));
     parser.addOption(QCommandLineOption(QStringList{QStringLiteral("device"), QStringLiteral("d")}, i18n("Device ID"), QStringLiteral("dev")));
     parser.addOption(QCommandLineOption(QStringList{QStringLiteral("name"), QStringLiteral("n")}, i18n("Device Name"), QStringLiteral("name")));
@@ -100,6 +107,16 @@ int main(int argc, char **argv)
     parser.addOption(QCommandLineOption(QStringLiteral("execute-command"), i18n("Execute remote command by id"), QStringLiteral("id")));
     parser.addOption(QCommandLineOption(QStringList{QStringLiteral("k"), QStringLiteral("send-keys")}, i18n("Send keys to device"), QStringLiteral("key")));
     parser.addOption(QCommandLineOption(QStringLiteral("my-id"), i18n("Display this device's id and exit")));
+    parser.addOption(QCommandLineOption(QStringLiteral("stream-audio"),
+                                        i18n("Stream local audio to the device (media, "
+                                             "system, call or microphone)"),
+                                        QStringLiteral("source")));
+    parser.addOption(QCommandLineOption(QStringLiteral("request-audio"),
+                                        i18n("Play audio from the device here (media, system, "
+                                             "call or microphone)"),
+                                        QStringLiteral("source")));
+    parser.addOption(QCommandLineOption(QStringLiteral("stop-audio"), i18n("Stop all audio streams with the device")));
+    parser.addOption(QCommandLineOption(QStringLiteral("list-audio-streams"), i18n("List audio streams with the device")));
 #ifdef Q_OS_WIN
     parser.addOption(QCommandLineOption(QStringLiteral("browse"), i18n("Browse the filesystem of a said device")));
 #else
@@ -111,7 +128,8 @@ int main(int argc, char **argv)
     QCommandLineOption deviceAutocomplete(QStringLiteral("shell-device-autocompletion"));
     deviceAutocomplete.setFlags(QCommandLineOption::HiddenFromHelp);
     deviceAutocomplete.setDescription(
-        QStringLiteral("Outputs all available devices id's with their name and paired status")); // Not visible, so no translation needed
+        QStringLiteral("Outputs all available devices id's with their name and "
+                       "paired status")); // Not visible, so no translation needed
     deviceAutocomplete.setValueName(QStringLiteral("shell"));
     parser.addOption(deviceAutocomplete);
     aboutData.setupCommandLine(&parser);
@@ -153,8 +171,12 @@ int main(int argc, char **argv)
                 if (isReachable) {
                     const QString addresses = deviceIface.reachableAddresses().join(QStringLiteral(", "));
                     const QString providers = deviceIface.activeProviderNames().join(QStringLiteral(", "));
-                    QTextStream(stdout)
-                        << i18nc("Details on how a device is connected eg: on <network address> via Bluetooth", "on %1 via %2", addresses, providers) << ' ';
+                    QTextStream(stdout) << i18nc(
+                        "Details on how a device is connected "
+                        "eg: on <network address> via Bluetooth",
+                        "on %1 via %2",
+                        addresses,
+                        providers) << ' ';
                 }
                 if (isReachable && isPaired) {
                     QTextStream(stdout) << i18n("(paired and reachable)") << Qt::endl;
@@ -176,7 +198,8 @@ int main(int argc, char **argv)
             QTextStream(stdout) << backend << Qt::endl;
         }
     } else if (parser.isSet(QStringLiteral("shell-device-autocompletion"))) {
-        // Outputs a list of reachable devices in zsh autocomplete format, with the name as description
+        // Outputs a list of reachable devices in zsh autocomplete format, with the
+        // name as description
         const QStringList devices = blockOnReply<QStringList>(iface.devices(true, false));
         for (const QString &id : devices) {
             DeviceDbusInterface deviceIface(id);
@@ -280,7 +303,8 @@ int main(int argc, char **argv)
 
         DeviceDbusInterface dev(device);
         if (!dev.isReachable()) {
-            // Device doesn't exist, go into discovery mode and wait up to 30 seconds for the device to appear
+            // Device doesn't exist, go into discovery mode and wait up to 30 seconds
+            // for the device to appear
             QEventLoop wait;
             QTextStream(stderr) << i18n("waiting for device…") << Qt::endl;
 
@@ -369,8 +393,60 @@ int main(int argc, char **argv)
 
             reply.waitForFinished();
         } else {
-            QTextStream(stderr) << i18n("error: should specify the SMS's recipient by passing --destination <phone number>") << Qt::endl;
+            QTextStream(stderr) << i18n(
+                "error: should specify the SMS's recipient "
+                "by passing --destination <phone number>")
+                                << Qt::endl;
             return 1;
+        }
+    } else if (parser.isSet(QStringLiteral("stream-audio")) || parser.isSet(QStringLiteral("request-audio"))) {
+        QString device = getDevice(iface, parser);
+        if (device.isEmpty())
+            return 1;
+
+        const bool send = parser.isSet(QStringLiteral("stream-audio"));
+        const QString source = parser.value(send ? QStringLiteral("stream-audio") : QStringLiteral("request-audio"));
+        const QStringList sources{QStringLiteral("media"), QStringLiteral("system"), QStringLiteral("call"), QStringLiteral("microphone")};
+        if (!sources.contains(source)) {
+            QTextStream(stderr) << i18n("error: unknown audio source \"%1\", use one of: %2", source, sources.join(QStringLiteral(", "))) << Qt::endl;
+            return 1;
+        }
+        QDBusMessage msg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kdeconnect"),
+                                                          QLatin1String("/modules/kdeconnect/devices/%1/audiostream").arg(device),
+                                                          QStringLiteral("org.kde.kdeconnect.device.audiostream"),
+                                                          send ? QStringLiteral("startStream") : QStringLiteral("requestStream"));
+        msg.setArguments({source});
+        const QString streamId = blockOnReply<QString>(QDBusConnection::sessionBus().asyncCall(msg));
+        if (streamId.isEmpty()) {
+            QTextStream(stderr) << i18n("error: could not start the audio stream") << Qt::endl;
+            return 1;
+        }
+        QTextStream(stdout) << streamId << Qt::endl;
+    } else if (parser.isSet(QStringLiteral("stop-audio"))) {
+        QString device = getDevice(iface, parser);
+        if (device.isEmpty())
+            return 1;
+
+        QDBusMessage msg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kdeconnect"),
+                                                          QLatin1String("/modules/kdeconnect/devices/%1/audiostream").arg(device),
+                                                          QStringLiteral("org.kde.kdeconnect.device.audiostream"),
+                                                          QStringLiteral("stopAllStreams"));
+        blockOnReply(QDBusConnection::sessionBus().asyncCall(msg));
+    } else if (parser.isSet(QStringLiteral("list-audio-streams"))) {
+        QString device = getDevice(iface, parser);
+        if (device.isEmpty())
+            return 1;
+
+        const QString path = QLatin1String("/modules/kdeconnect/devices/%1/audiostream").arg(device);
+        const QString interface = QStringLiteral("org.kde.kdeconnect.device.audiostream");
+        QDBusMessage msg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kdeconnect"), path, interface, QStringLiteral("activeStreams"));
+        const QStringList ids = blockOnReply<QStringList>(QDBusConnection::sessionBus().asyncCall(msg));
+        for (const QString &id : ids) {
+            QDBusMessage infoMsg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kdeconnect"), path, interface, QStringLiteral("streamInfo"));
+            infoMsg.setArguments({id});
+            const QVariantMap info = blockOnReply<QVariantMap>(QDBusConnection::sessionBus().asyncCall(infoMsg));
+            QTextStream(stdout) << "- " << id << ": " << info.value(QStringLiteral("direction")).toString() << " "
+                                << info.value(QStringLiteral("source")).toString() << " (" << info.value(QStringLiteral("state")).toString() << ")" << Qt::endl;
         }
     } else if (parser.isSet(QStringLiteral("ring"))) {
         QString device = getDevice(iface, parser);

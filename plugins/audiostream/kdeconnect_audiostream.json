@@ -1,0 +1,24 @@
+{
+    "$schema": "../kdeconnect.schema.json",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "kdeconnect@kde.org",
+                "Name": "KDE Connect Team"
+            }
+        ],
+        "Description": "Stream media, system, call or microphone audio between devices",
+        "EnabledByDefault": true,
+        "Icon": "audio-speakers-symbolic",
+        "License": "GPL",
+        "Name": "Audio streaming"
+    },
+    "X-KdeConnect-OutgoingPacketType": [
+        "kdeconnect.audiostream",
+        "kdeconnect.audiostream.request"
+    ],
+    "X-KdeConnect-SupportedPacketType": [
+        "kdeconnect.audiostream",
+        "kdeconnect.audiostream.request"
+    ]
+}

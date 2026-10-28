@@ -1165,3 +1165,13 @@ Name[uk]=Помилка
 Name[zh_CN]=错误
 Name[zh_TW]=錯誤
 Action=Popup
+
+[Event/audioStream]
+Name=Audio Stream
+Comment=Audio is being streamed to or from a device
+Action=Popup
+
+[Event/audioStreamRequest]
+Name=Audio Stream Request
+Comment=A device asks to receive your microphone or call audio
+Action=Popup

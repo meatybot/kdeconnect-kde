@@ -1,7 +1,8 @@
 /*
  * SPDX-FileCopyrightText: 2013 Albert Vaca <albertvaka@gmail.com>
  *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+ * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR
+ * LicenseRef-KDE-Accepted-GPL
  */
 
 #include "uploadjob.h"
@@ -21,6 +22,20 @@ UploadJob::UploadJob(const NetworkPacket &networkPacket)
 {
 }
 
+UploadJob::~UploadJob()
+{
+    // The owner of a live stream must learn that nobody reads it anymore
+    if (isLiveStream() && m_input->isOpen()) {
+        m_input->disconnect(this);
+        m_input->close();
+    }
+}
+
+bool UploadJob::isLiveStream() const
+{
+    return m_networkPacket.payloadSize() == -1 && m_input && m_input->isSequential();
+}
+
 void UploadJob::setSocket(QSslSocket *socket)
 {
     m_socket = socket;
@@ -30,11 +45,12 @@ void UploadJob::setSocket(QSslSocket *socket)
 void UploadJob::start()
 {
     if (!m_networkPacket.hasPayload()) {
-        // No actual payload to send (e.g. an empty file): nothing to do, even though m_input may
-        // be a valid-but-empty QIODevice (SharePlugin::shareUrl() always attaches one). Complete
-        // asynchronously (like a real transfer would) instead of synchronously, so we don't
-        // re-enter the composite job's result handling while it may still be in the middle of
-        // having subjobs added to it.
+        // No actual payload to send (e.g. an empty file): nothing to do, even
+        // though m_input may be a valid-but-empty QIODevice
+        // (SharePlugin::shareUrl() always attaches one). Complete asynchronously
+        // (like a real transfer would) instead of synchronously, so we don't
+        // re-enter the composite job's result handling while it may still be in the
+        // middle of having subjobs added to it.
         QMetaObject::invokeMethod(this, "finishWithoutTransfer", Qt::QueuedConnection);
         return;
     }
@@ -57,12 +73,34 @@ void UploadJob::start()
 
     connect(m_socket, &QSslSocket::encryptedBytesWritten, this, &UploadJob::encryptedBytesWritten);
 
+    if (isLiveStream()) {
+        // A live stream (e.g. audio) only ends when its source closes, running dry
+        // just means waiting for more data. If the receiver goes away, close the
+        // source so its owner knows.
+        connect(m_input.data(), &QIODevice::readyRead, this, [this] {
+            if (m_waitingForData) {
+                m_waitingForData = false;
+                uploadNextPacket();
+            }
+        });
+        connect(m_socket, &QAbstractSocket::disconnected, this, [this] {
+            if (m_input->isOpen()) {
+                m_input->close();
+            }
+        });
+    }
+
     uploadNextPacket();
 }
 
 void UploadJob::uploadNextPacket()
 {
     qint64 bytesAvailable = m_input->bytesAvailable();
+
+    if (bytesAvailable <= 0 && isLiveStream() && m_input->isOpen()) {
+        m_waitingForData = true;
+        return;
+    }
 
     if (bytesAvailable > 0) {
         qint64 bytesToSend = qMin(m_input->bytesAvailable(), (qint64)4096);

@@ -1,7 +1,8 @@
 /**
  * SPDX-FileCopyrightText: 2016 Saikrishna Arcot <saiarcot895@gmail.com>
  *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+ * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR
+ * LicenseRef-KDE-Accepted-GPL
  */
 
 #include "bluetoothdevicelink.h"
@@ -41,7 +42,7 @@ QString BluetoothDeviceLink::address() const
 bool BluetoothDeviceLink::sendPacket(NetworkPacket &np)
 {
     if (np.hasPayload()) {
-        BluetoothUploadJob *uploadJob = new BluetoothUploadJob(np.payload(), mConnection, this);
+        BluetoothUploadJob *uploadJob = new BluetoothUploadJob(np.payload(), np.payloadSize(), mConnection, this);
         np.setPayloadTransferInfo(uploadJob->transferInfo());
         uploadJob->start();
     }

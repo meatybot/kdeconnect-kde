@@ -2,7 +2,8 @@
  * SPDX-FileCopyrightText: 2016 Saikrishna Arcot <saiarcot895@gmail.com>
  * SPDX-FileCopyrightText: 2018 Matthijs TIjink <matthijstijink@gmail.com>
  *
- * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+ * SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR
+ * LicenseRef-KDE-Accepted-GPL
  */
 
 #include "bluetoothuploadjob.h"
@@ -13,9 +14,10 @@
 #include <QBluetoothSocket>
 #include <QCoreApplication>
 
-BluetoothUploadJob::BluetoothUploadJob(const QSharedPointer<QIODevice> &data, ConnectionMultiplexer *connection, QObject *parent)
+BluetoothUploadJob::BluetoothUploadJob(const QSharedPointer<QIODevice> &data, qint64 size, ConnectionMultiplexer *connection, QObject *parent)
     : QObject(parent)
     , mData(data)
+    , mLiveStream(size == -1 && data->isSequential())
     , mTransferUuid(connection->newChannel())
 {
     mSocket = QSharedPointer<MultiplexChannel>{connection->getChannel(mTransferUuid).release()};
@@ -36,6 +38,11 @@ void BluetoothUploadJob::start()
     }
     connect(mSocket.data(), &MultiplexChannel::bytesWritten, this, &BluetoothUploadJob::writeSome);
     connect(mSocket.data(), &MultiplexChannel::aboutToClose, this, &BluetoothUploadJob::closeConnection);
+    if (mLiveStream) {
+        // Running dry is not the end of a live stream, its source closing is
+        connect(mData.data(), &QIODevice::readyRead, this, &BluetoothUploadJob::writeSome);
+        connect(mData.data(), &QIODevice::aboutToClose, mSocket.data(), &MultiplexChannel::close);
+    }
     writeSome();
 }
 
@@ -53,7 +60,7 @@ void BluetoothUploadJob::writeSome()
         }
     }
 
-    if (mData->atEnd() || errorOccurred) {
+    if ((mData->atEnd() && !mLiveStream) || errorOccurred) {
         mData->close();
         mSocket->close();
     }

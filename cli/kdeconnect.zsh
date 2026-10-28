@@ -42,6 +42,10 @@ _arguments -s \
   $blockoperations'--execute-command=[execute a remote command]:command id' \
   $blockoperations{-k=,--send-keys=}'[send keyboard input to the specified device]:keyboard input' \
   $blockoperations"--photo=[open the connected device's camera and transfer the photo]:file:_files" \
+  $blockoperations'--stream-audio=[stream local audio to the device]:source:(media system call microphone)' \
+  $blockoperations'--request-audio=[play audio from the device here]:source:(media system call microphone)' \
+  $blockoperations'--stop-audio[stop all audio streams with the device]' \
+  $blockoperations'--list-audio-streams[list audio streams with the device]' \
   + 'sms' \
   '(operation)--send-sms=[send an SMS]:message:' \
   '(operation)--destination=[specify phone number to send the SMS to]:phone number:' \
