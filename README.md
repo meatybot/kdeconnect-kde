@@ -35,6 +35,8 @@ found the repo :), instructions are
 
 This fork also publishes Flatpak bundles on its GitHub releases page. See [RELEASING.md](RELEASING.md) for how to install and how releases are made.
 
+To build this fork from source, clone it with `git clone --recurse-submodules`, or run `git submodule update --init` in an existing checkout. The relay protocol code comes from the [kdeconnect-relayserver](https://github.com/meatybot/kdeconnect-relayserver) submodule. That repository also has the relay server itself, with binaries, a container image and a hosting guide.
+
 ### On Mac or Windows
 Platforms other than Linux are not officially supported, as there has yet to be an official release of KDE Connect for MacOS or Windows. However, most of the features have already been ported to windows so you can compile KDE Connect for Windows using [Craft](https://community.kde.org/Craft). It hasn't yet been completely tested on MacOS, contributions and feedback are welcome!
 

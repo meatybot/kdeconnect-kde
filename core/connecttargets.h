@@ -10,7 +10,7 @@
 #include <QElapsedTimer>
 #include <QList>
 
-#include "backends/relay/relayprotocol.h"
+#include "relayprotocol.h"
 #include "kdeconnectcore_export.h"
 
 // Devices the user asked to connect to by relay key or certificate fingerprint. When a link whose certificate

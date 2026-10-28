@@ -46,7 +46,7 @@ ecm_qt_declare_logging_category(kdeconnectcore
     EXPORT kdeconnect-kde DESCRIPTION "kdeconnect (core)")
 
 
-target_include_directories(kdeconnectcore PUBLIC ${PROJECT_SOURCE_DIR})
+target_include_directories(kdeconnectcore PUBLIC ${PROJECT_SOURCE_DIR} ${KDECONNECT_RELAYSERVER_DIR}/src)
 
 find_package(OpenSSL REQUIRED COMPONENTS Crypto)
 

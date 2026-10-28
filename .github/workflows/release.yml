@@ -40,6 +40,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.TAG }}
+          submodules: true
       - run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - run: cmake --build build
       - working-directory: build
@@ -55,6 +56,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.TAG }}
+          submodules: true
       - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
         with:
           bundle: kdeconnect-${{ env.TAG }}-x86_64.flatpak
@@ -75,6 +77,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.TAG }}
+          submodules: true
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -86,7 +89,13 @@ jobs:
           # Craft names packages after the source revision, HEAD for a local source dir
           for f in kdeconnect-kde-HEAD-*; do mv -v "$f" "${f/HEAD/$TAG}"; done
           cd ..
-          git archive --format=tar.gz --prefix="kdeconnect-kde-$TAG/" -o "dist/kdeconnect-kde-$TAG.tar.gz" HEAD
+          # git archive leaves submodules out, so append the relay server sources
+          prefix="kdeconnect-kde-$TAG/"
+          git archive --format=tar --prefix="$prefix" -o source.tar HEAD
+          git -C 3rdparty/kdeconnect-relayserver archive --format=tar --prefix="${prefix}3rdparty/kdeconnect-relayserver/" -o "$PWD/relay.tar" HEAD
+          tar --concatenate --file=source.tar relay.tar
+          gzip -9 < source.tar > "dist/kdeconnect-kde-$TAG.tar.gz"
+          rm source.tar relay.tar
           cd dist && sha256sum * > SHA256SUMS && ls -la
       - name: Publish release
         env:

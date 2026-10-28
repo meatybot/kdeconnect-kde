@@ -9,13 +9,7 @@ SPDX-License-Identifier = "GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accept
 
 # Files added by the meatybot fork that cannot carry a header comment
 [[annotations]]
-path = ["RELEASING.md", "docs/specs/*.md", "relayserver/README.md", "core/backends/relay/CMakeLists.txt", "plugins/audiostream/CMakeLists.txt", "plugins/audiostream/kdeconnect_audiostream.json", "plugins/audiostream/tests/CMakeLists.txt", "packaging/flatpak/org.kde.kdeconnect.json"]
+path = ["RELEASING.md", "docs/specs/*.md", "core/backends/relay/CMakeLists.txt", "plugins/audiostream/CMakeLists.txt", "plugins/audiostream/kdeconnect_audiostream.json", "plugins/audiostream/tests/CMakeLists.txt", "packaging/flatpak/org.kde.kdeconnect.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 meatybot <avatarcc@tuta.io>"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
-
-[[annotations]]
-path = ["tests/data/relay-test-vector.pem"]
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2026 meatybot <avatarcc@tuta.io>"
-SPDX-License-Identifier = "CC0-1.0"

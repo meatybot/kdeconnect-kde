@@ -18,13 +18,13 @@
 #include "core/backends/relay/relayconnection.h"
 #include "core/backends/relay/relaydevicelink.h"
 #include "core/backends/relay/relaylinkprovider.h"
-#include "core/backends/relay/relayprotocol.h"
+#include "relayprotocol.h"
 #include "core/backends/relay/relaytunnelsocket.h"
 #include "core/connecttargets.h"
 #include "core/kdeconnectconfig.h"
 #include "core/networkpacket.h"
 #include "core/sslhelper.h"
-#include "relayserver/relayserver.h"
+#include "relayserver.h"
 
 using RelayProtocol::Target;
 
@@ -183,7 +183,7 @@ private Q_SLOTS:
 
     void testSharedTestVector()
     {
-        QFile file(QFINDTESTDATA("data/relay-test-vector.pem"));
+        QFile file(QFINDTESTDATA("../3rdparty/kdeconnect-relayserver/tests/data/relay-test-vector.pem"));
         QVERIFY(file.open(QIODevice::ReadOnly));
         const QSslCertificate certificate(file.readAll(), QSsl::Pem);
         QVERIFY(!certificate.isNull());

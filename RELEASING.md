@@ -53,6 +53,22 @@ If the release job fails after the tag is pushed, fix the problem on `master` an
 - Rebuild the existing tag without moving it. Run the Release workflow from the Actions tab with **Run workflow** and enter the tag, or use `gh workflow run Release -R meatybot/kdeconnect-kde -f tag=<tag>`. The publish step reuses an existing release and replaces its assets.
 - Move the tag to the fixed commit with `git tag -f -a <tag> -m "..."` and `git push -f origin <tag>`. Only do this when nobody has downloaded the release yet. Otherwise, tag the next `-fork.N` instead.
 
+## The relay server submodule
+
+The relay server is a separate project, [meatybot/kdeconnect-relayserver](https://github.com/meatybot/kdeconnect-relayserver), with its own releases and container image. This repository includes it as the git submodule `3rdparty/kdeconnect-relayserver`, pinned to a release tag. The desktop client compiles the shared protocol code from it and the relay tests run against its server code. None of the packages built here contain the server binary.
+
+Clone with `git clone --recurse-submodules`, or run `git submodule update --init` in an existing checkout. CMake stops with an error if the submodule is missing. The CI and release workflows check it out automatically, and the release source tarball includes it.
+
+To move to a newer relay server release:
+
+```sh
+git -C 3rdparty/kdeconnect-relayserver fetch --tags
+git -C 3rdparty/kdeconnect-relayserver checkout v1.1.0
+git commit -am "Bump kdeconnect-relayserver to v1.1.0"
+```
+
+The relay tests (`relaytest`) then show whether the client still works with the new server.
+
 ## Building the Flatpak locally
 
 flatpak-builder needs the KDE SDK and runtime 6.10 from Flathub:
@@ -74,7 +90,7 @@ The bundle has full session D-Bus access, like a native install, because notific
 
 The CraftMaster configuration is `.github/craft/CraftConfig.ini`. It is a copy of KDE's `craft-ci/qt6/CraftConfig.ini` with the paths changed for GitHub-hosted runners and code signing turned off.
 
-The Craft blueprint builds without PulseAudio, so neither package contains the audio streaming plugin, which needs PulseAudio. The Windows package also lacks the `kdeconnect-relayserver` binary, because the blueprint's package filter only keeps a fixed list of executables. The macOS package ships it. Connecting through a relay works on both platforms, because the relay link provider is part of `kdeconnectcore`.
+The Craft blueprint builds without PulseAudio, so neither package contains the audio streaming plugin, which needs PulseAudio. Connecting through a relay works on both platforms, because the relay link provider is part of `kdeconnectcore`.
 
 ## Installing on Windows and macOS
 

@@ -46,6 +46,7 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           path: src
+          submodules: true
 
       - uses: actions/setup-python@v5
         with:

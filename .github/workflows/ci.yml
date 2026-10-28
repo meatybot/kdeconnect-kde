@@ -31,6 +31,8 @@ jobs:
             gst-plugins-base gst-plugins-good gstreamer opus libei libxkbcommon xdg-desktop-portal
 
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON

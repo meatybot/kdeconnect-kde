@@ -141,6 +141,12 @@ endif()
 
 configure_file(config-X11.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-X11.h)
 
+# The relay protocol code is shared with the relay server, https://github.com/meatybot/kdeconnect-relayserver
+set(KDECONNECT_RELAYSERVER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/kdeconnect-relayserver)
+if(NOT EXISTS ${KDECONNECT_RELAYSERVER_DIR}/src/relayprotocol.cpp)
+    message(FATAL_ERROR "The kdeconnect-relayserver submodule is missing. Run: git submodule update --init")
+endif()
+
 add_subdirectory(core)
 add_subdirectory(plugins)
 add_subdirectory(dbusinterfaces)
@@ -166,10 +172,6 @@ if(NOT WIN32 AND NOT APPLE)
     add_subdirectory(plasmoid)
 endif()
 
-option(BUILD_RELAY_SERVER "Build the standalone relay server (QtCore and QtNetwork only)" ON)
-if(BUILD_RELAY_SERVER)
-    add_subdirectory(relayserver)
-endif()
 
 ki18n_install(po)
 

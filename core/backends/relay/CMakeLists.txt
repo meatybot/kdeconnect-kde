@@ -1,6 +1,6 @@
 set(backends_kdeconnect_SRCS
     ${backends_kdeconnect_SRCS}
-    backends/relay/relayprotocol.cpp
+    ${KDECONNECT_RELAYSERVER_DIR}/src/relayprotocol.cpp
     backends/relay/relayconnection.cpp
     backends/relay/relaytunnelsocket.cpp
     backends/relay/relaylinkprovider.cpp

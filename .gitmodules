@@ -1,0 +1,3 @@
+[submodule "3rdparty/kdeconnect-relayserver"]
+	path = 3rdparty/kdeconnect-relayserver
+	url = https://github.com/meatybot/kdeconnect-relayserver.git
