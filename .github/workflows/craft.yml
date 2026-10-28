@@ -1,0 +1,115 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+#
+# Windows and macOS builds with KDE Craft, the GitHub counterpart of the craft-windows and
+# craft-macos jobs in .gitlab-ci.yml. Dependencies come from KDE's prebuilt Craft cache,
+# only kdeconnect itself is compiled. Called by ci.yml and release.yml.
+
+name: Craft
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to build, defaults to the triggering commit
+        type: string
+        default: ""
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x86_64
+            os: windows-2022
+            target: windows-msvc2022_64-cl
+            root: C:/CR
+            packages: "*.exe *.7z *.sha256"
+          - name: macos-arm64
+            os: macos-15
+            target: macos-arm-clang
+            root: /Users/runner/craft
+            packages: "*.dmg *.sha256"
+    defaults:
+      run:
+        shell: bash
+    env:
+      CRAFT_TARGET: ${{ matrix.target }}
+      CRAFT_ROOT: ${{ matrix.root }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          path: src
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up CraftMaster
+        run: |
+          git clone --depth 1 https://invent.kde.org/packaging/craftmaster.git "$RUNNER_TEMP/craftmaster"
+          ws="$GITHUB_WORKSPACE"
+          [ "$RUNNER_OS" = Windows ] && ws=$(cygpath -m "$GITHUB_WORKSPACE")
+          echo "SRC_DIR=$ws/src" >> "$GITHUB_ENV"
+          # Also passes .craft.ini of this repository, like the KDE CI does
+          cat > "$RUNNER_TEMP/craftmaster.sh" <<EOF
+          craftmaster() {
+            python "$RUNNER_TEMP/craftmaster/CraftMaster.py" \
+              --config "$ws/src/.github/craft/CraftConfig.ini" \
+              --config-override "$ws/src/.craft.ini" \
+              --variables "Root=\$CRAFT_ROOT" \
+              --target "\$CRAFT_TARGET" "\$@"
+          }
+          EOF
+
+      - name: Set up Craft
+        run: |
+          . "$RUNNER_TEMP/craftmaster.sh"
+          craftmaster --setup
+          craftmaster -c -i --options virtual.ignored=True --update craft
+
+      - name: Install dependencies
+        run: |
+          . "$RUNNER_TEMP/craftmaster.sh"
+          craftmaster -c --install-deps kdeconnect-kde
+
+      - name: Build
+        run: |
+          . "$RUNNER_TEMP/craftmaster.sh"
+          craftmaster -c --no-cache --options "kdeconnect-kde.srcDir=$SRC_DIR" kdeconnect-kde
+
+      - name: Package
+        run: |
+          . "$RUNNER_TEMP/craftmaster.sh"
+          [ "$RUNNER_OS" = Windows ] && craftmaster -c -i --update nsis
+          craftmaster -c --package --options "kdeconnect-kde.srcDir=$SRC_DIR" kdeconnect-kde
+          packageDir=$(craftmaster -c -q --get "packageDestinationDir()" virtual/base | tr -d '\r' | tail -1)
+          mkdir -p packages
+          cd "$packageDir"
+          shopt -s nullglob
+          cp -v ${{ matrix.packages }} "$GITHUB_WORKSPACE/packages/"
+          ls -la "$GITHUB_WORKSPACE/packages"
+          [ -n "$(ls "$GITHUB_WORKSPACE/packages")" ]
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.name }}
+          path: packages/
+
+      - name: Collect logs
+        if: failure()
+        run: |
+          mkdir -p logs
+          cp -R "$CRAFT_ROOT/$CRAFT_TARGET/logs/." logs/ || true
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: craft-logs-${{ matrix.name }}
+          path: logs/

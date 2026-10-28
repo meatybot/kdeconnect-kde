@@ -3,6 +3,7 @@
 #
 # GitHub equivalent of the KDE invent CI (.gitlab-ci.yml / .kde-ci.yml, Linux/Qt6 job).
 # Builds against the KF6/Qt6 packages of Arch Linux and runs the ctest suite headless.
+# Windows and macOS are built with KDE Craft in craft.yml.
 
 name: CI
 
@@ -54,3 +55,6 @@ jobs:
           git diff -U0 --no-color "origin/${{ github.base_ref }}"...HEAD -- '*.cpp' '*.h' \
             | clang-format-diff -p1 > format.diff || true
           if [ -s format.diff ]; then cat format.diff; exit 1; fi
+
+  windows-macos:
+    uses: ./.github/workflows/craft.yml
