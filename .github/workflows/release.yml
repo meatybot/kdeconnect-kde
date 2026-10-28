@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: None
 # SPDX-License-Identifier: CC0-1.0
 #
-# For a pushed v* tag: runs the Linux test suite, builds a Flatpak bundle and a source
-# tarball, and publishes them as a GitHub release.
+# For a pushed v* tag: runs the Linux test suite, builds a Flatpak bundle, Windows and macOS
+# packages (craft.yml) and a source tarball, and publishes them as a GitHub release.
 
 name: Release
 
@@ -62,8 +62,14 @@ jobs:
           cache-key: flatpak-builder-${{ github.sha }}
           upload-artifact: true
 
+  windows-macos:
+    needs: test
+    uses: ./.github/workflows/craft.yml
+    with:
+      ref: ${{ inputs.tag || github.ref_name }}
+
   publish:
-    needs: flatpak
+    needs: [flatpak, windows-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,6 +81,11 @@ jobs:
           merge-multiple: true
       - name: Source tarball and checksums
         run: |
+          cd dist
+          rm -f *.sha256
+          # Craft names packages after the source revision, HEAD for a local source dir
+          for f in kdeconnect-kde-HEAD-*; do mv -v "$f" "${f/HEAD/$TAG}"; done
+          cd ..
           git archive --format=tar.gz --prefix="kdeconnect-kde-$TAG/" -o "dist/kdeconnect-kde-$TAG.tar.gz" HEAD
           cd dist && sha256sum * > SHA256SUMS && ls -la
       - name: Publish release
