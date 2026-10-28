@@ -55,7 +55,11 @@ jobs:
         run: |
           git clone --depth 1 https://invent.kde.org/packaging/craftmaster.git "$RUNNER_TEMP/craftmaster"
           ws="$GITHUB_WORKSPACE"
-          [ "$RUNNER_OS" = Windows ] && ws=$(cygpath -m "$GITHUB_WORKSPACE")
+          py=$(dirname "$(command -v python)")
+          if [ "$RUNNER_OS" = Windows ]; then
+            ws=$(cygpath -m "$GITHUB_WORKSPACE")
+            py=$(cygpath -m "$py")
+          fi
           echo "SRC_DIR=$ws/src" >> "$GITHUB_ENV"
           # Also passes .craft.ini of this repository, like the KDE CI does
           cat > "$RUNNER_TEMP/craftmaster.sh" <<EOF
@@ -63,7 +67,7 @@ jobs:
             python "$RUNNER_TEMP/craftmaster/CraftMaster.py" \
               --config "$ws/src/.github/craft/CraftConfig.ini" \
               --config-override "$ws/src/.craft.ini" \
-              --variables "Root=\$CRAFT_ROOT" \
+              --variables "Root=\$CRAFT_ROOT" "Python=$py" \
               --target "\$CRAFT_TARGET" "\$@"
           }
           EOF
