@@ -61,8 +61,16 @@ jobs:
             py=$(cygpath -m "$py")
           fi
           echo "SRC_DIR=$ws/src" >> "$GITHUB_ENV"
+          if [ "$RUNNER_OS" = Windows ]; then
+            # Craft looks for patch.exe in usr/bin next to the directory of the first git.exe
+            # on PATH. Git Bash puts ucrt64/bin first, which has no such sibling, so resolve
+            # git from Git/cmd as it is in the PowerShell environment of the KDE CI.
+            echo 'export PATH="/c/Program Files/Git/cmd:$PATH"' >> "$RUNNER_TEMP/craftmaster.env"
+          fi
+          touch "$RUNNER_TEMP/craftmaster.env"
           # Also passes .craft.ini of this repository, like the KDE CI does
           cat > "$RUNNER_TEMP/craftmaster.sh" <<EOF
+          . "$RUNNER_TEMP/craftmaster.env"
           craftmaster() {
             python "$RUNNER_TEMP/craftmaster/CraftMaster.py" \
               --config "$ws/src/.github/craft/CraftConfig.ini" \
