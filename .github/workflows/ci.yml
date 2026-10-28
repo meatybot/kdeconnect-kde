@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+#
+# GitHub equivalent of the KDE invent CI (.gitlab-ci.yml / .kde-ci.yml, Linux/Qt6 job).
+# Builds against the KF6/Qt6 packages of Arch Linux and runs the ctest suite headless.
+
+name: CI
+
+on:
+  push:
+    branches: [master, "feature/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux-qt6:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel cmake ninja git extra-cmake-modules \
+            qt6-base qt6-declarative qt6-multimedia qt6-connectivity qt6-wayland qt6-tools \
+            kcoreaddons kconfig ki18n kitemmodels kcontacts kirigami kdbusaddons knotifications \
+            kiconthemes kio kcmutils kservice solid kpeople kwindowsystem qqc2-desktop-style \
+            kirigami-addons kpackage kstatusnotifieritem pulseaudio-qt plasma-wayland-protocols \
+            modemmanager-qt kcolorscheme kguiaddons kcrash kwidgetsaddons wayland wayland-protocols \
+            libfakekey libxtst qca-qt6 kdoctools xorg-server-xvfb dbus libpulse pipewire \
+            gst-plugins-base gst-plugins-good gstreamer opus libei libxkbcommon xdg-desktop-portal
+
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        working-directory: build
+        run: dbus-run-session -- xvfb-run -a ctest --output-on-failure
+
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check formatting of changed files
+        if: github.event_name == 'pull_request'
+        run: |
+          sudo apt-get install -y clang-format
+          git diff -U0 --no-color "origin/${{ github.base_ref }}"...HEAD -- '*.cpp' '*.h' \
+            | clang-format-diff -p1 > format.diff || true
+          if [ -s format.diff ]; then cat format.diff; exit 1; fi
