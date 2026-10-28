@@ -33,6 +33,8 @@ If it's not there and you know how to build software from sources, you just
 found the repo :), instructions are
 [here](https://community.kde.org/KDEConnect#Linux_Desktop)
 
+This fork also publishes Flatpak bundles on its GitHub releases page. See [RELEASING.md](RELEASING.md) for how to install and how releases are made.
+
 ### On Mac or Windows
 Platforms other than Linux are not officially supported, as there has yet to be an official release of KDE Connect for MacOS or Windows. However, most of the features have already been ported to windows so you can compile KDE Connect for Windows using [Craft](https://community.kde.org/Craft). It hasn't yet been completely tested on MacOS, contributions and feedback are welcome!
 
