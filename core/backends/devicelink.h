@@ -10,11 +10,12 @@
 #include <QObject>
 
 #include "deviceinfo.h"
+#include "kdeconnectcore_export.h"
 #include "networkpacket.h"
 
 class LinkProvider;
 
-class DeviceLink : public QObject
+class KDECONNECTCORE_EXPORT DeviceLink : public QObject
 {
     Q_OBJECT
 public:

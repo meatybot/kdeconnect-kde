@@ -26,6 +26,8 @@
 #include "backends/lan/lanlinkprovider.h"
 #include "backends/linkprovider.h"
 #include "backends/loopback/loopbacklinkprovider.h"
+#include "backends/relay/relaylinkprovider.h"
+#include "connecttargets.h"
 #include "device.h"
 
 static Daemon *s_instance = nullptr;
@@ -38,6 +40,10 @@ struct DaemonPrivate {
     QMap<QString, Device *> m_devices;
 
     bool m_testMode;
+
+    RelayLinkProvider *m_relayLinkProvider = nullptr;
+    // Devices the user asked to connect to by key or fingerprint
+    ConnectTargets m_connectTargets;
 };
 
 Daemon *Daemon::instance()
@@ -84,6 +90,13 @@ void Daemon::init()
     } else {
         d->m_linkProviders.insert(new LanLinkProvider(false, disabledLinkProviders.contains(QStringLiteral("lan"))));
         qCDebug(KDECONNECT_CORE) << "Constructed LanLinkProvider Backend";
+        d->m_relayLinkProvider = new RelayLinkProvider(disabledLinkProviders.contains(QStringLiteral("relay")));
+        connect(d->m_relayLinkProvider, &RelayLinkProvider::statusChanged, this, [this]() {
+            Q_EMIT relayStatusChanged(relayStatus());
+            Q_EMIT relayKeyChanged(relayKey());
+        });
+        d->m_linkProviders.insert(d->m_relayLinkProvider);
+        qCDebug(KDECONNECT_CORE) << "Constructed RelayLinkProvider Backend";
 #ifdef KDECONNECT_BLUETOOTH
         d->m_linkProviders.insert(new BluetoothLinkProvider(disabledLinkProviders.contains(QStringLiteral("bluetooth"))));
         qCDebug(KDECONNECT_CORE) << "Constructed BluetoothLinkProvider Backend";
@@ -257,6 +270,14 @@ void Daemon::onNewDeviceLink(DeviceLink *link)
         Device *device = new Device(this, link);
         addDevice(device);
     }
+
+    if (d->m_connectTargets.take(link->deviceInfo().certificate)) {
+        Device *device = d->m_devices.value(id);
+        if (device && !device->isPaired() && !device->isPairRequested()) {
+            qCInfo(KDECONNECT_CORE) << "Requested device" << id << "connected via" << link->provider() << ", requesting pairing";
+            device->requestPairing();
+        }
+    }
 }
 
 void Daemon::onDeviceInfoUpdated(const DeviceInfo &deviceInfo)
@@ -342,6 +363,9 @@ void Daemon::addDevice(Device *device)
     connect(device, &Device::reachableChanged, this, &Daemon::onDeviceStatusChanged);
     connect(device, &Device::pairStateChanged, this, &Daemon::onDeviceStatusChanged);
     connect(device, &Device::pairStateChanged, this, &Daemon::pairingRequestsChanged);
+    if (d->m_relayLinkProvider) {
+        connect(device, &Device::pairStateChanged, d->m_relayLinkProvider, &RelayLinkProvider::refreshWatchList);
+    }
     connect(device, &Device::pairStateChanged, this, [this, device](int pairStateAsInt) {
         PairState pairState = (PairState)pairStateAsInt;
         if (pairState == PairState::RequestedByPeer)
@@ -370,6 +394,70 @@ Daemon::~Daemon()
 QString Daemon::selfId() const
 {
     return KdeConnectConfig::instance().deviceId();
+}
+
+QString Daemon::relayServer() const
+{
+    return KdeConnectConfig::instance().relayServer();
+}
+
+bool Daemon::setRelayServer(const QString &address)
+{
+    const QString previous = relayServer();
+    bool ok;
+    if (d->m_relayLinkProvider) {
+        ok = d->m_relayLinkProvider->setServer(address);
+    } else {
+        QString host;
+        quint16 port;
+        ok = address.trimmed().isEmpty() || RelayProtocol::parseAddress(address, &host, &port);
+        if (ok) {
+            KdeConnectConfig::instance().setRelayServer(address.trimmed());
+        }
+    }
+    if (ok && previous != relayServer()) {
+        Q_EMIT relayServerChanged(relayServer());
+    }
+    return ok;
+}
+
+QString Daemon::relayStatus() const
+{
+    return RelayConnection::statusString(d->m_relayLinkProvider ? d->m_relayLinkProvider->status() : RelayConnection::Status::Disabled);
+}
+
+QString Daemon::relayKey() const
+{
+    return d->m_relayLinkProvider ? d->m_relayLinkProvider->relayKey() : QString();
+}
+
+QString Daemon::selfFingerprint() const
+{
+    return RelayProtocol::fingerprint(KdeConnectConfig::instance().certificate());
+}
+
+bool Daemon::connectToDevice(const QString &input)
+{
+    const RelayProtocol::Target target = RelayProtocol::parseTarget(input);
+    if (!target.isValid() || RelayProtocol::matches(target, KdeConnectConfig::instance().certificate())) {
+        return false;
+    }
+
+    for (Device *device : std::as_const(d->m_devices)) {
+        if (device->isReachable() && RelayProtocol::matches(target, device->certificate())) {
+            if (!device->isPaired() && !device->isPairRequested()) {
+                device->requestPairing();
+            }
+            return true;
+        }
+    }
+
+    d->m_connectTargets.add(target);
+    forceOnNetworkChange(); // LAN rediscovery, picked up in onNewDeviceLink()
+    if (d->m_relayLinkProvider) {
+        d->m_relayLinkProvider->connectTo(target);
+    }
+    return true;
 }
 
 #include "moc_daemon.cpp"

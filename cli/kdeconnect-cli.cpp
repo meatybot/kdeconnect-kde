@@ -123,6 +123,13 @@ int main(int argc, char **argv)
                                         QStringLiteral("source")));
     parser.addOption(QCommandLineOption(QStringLiteral("stop-audio"), i18n("Stop all audio streams with the device")));
     parser.addOption(QCommandLineOption(QStringLiteral("list-audio-streams"), i18n("List audio streams with the device")));
+    parser.addOption(QCommandLineOption(QStringLiteral("relay-server"),
+                                        i18n("Set the relay server used to reach devices on other networks, empty to stop using one"),
+                                        i18n("host:port")));
+    parser.addOption(QCommandLineOption(QStringLiteral("relay-info"), i18n("Display the relay server, its status and this device's relay key")));
+    parser.addOption(QCommandLineOption(QStringLiteral("connect"),
+                                        i18n("Connect to and request pairing with a device by its relay key or certificate fingerprint"),
+                                        i18n("key or fingerprint")));
 #ifdef Q_OS_WIN
     parser.addOption(QCommandLineOption(QStringLiteral("browse"), i18n("Browse the filesystem of a said device")));
 #else
@@ -198,6 +205,24 @@ int main(int argc, char **argv)
         } else if (devices.isEmpty()) {
             QTextStream(stderr) << i18n("No devices found") << Qt::endl;
         }
+    } else if (parser.isSet(QStringLiteral("relay-server"))) {
+        if (!blockOnReply<bool>(iface.setRelayServer(parser.value(QStringLiteral("relay-server"))))) {
+            QTextStream(stderr) << i18n("Invalid relay server address") << Qt::endl;
+            return 1;
+        }
+    } else if (parser.isSet(QStringLiteral("relay-info"))) {
+        QTextStream out(stdout);
+        out << i18n("Relay server: %1", iface.relayServer()) << Qt::endl;
+        out << i18n("Relay status: %1", blockOnReply<QString>(iface.relayStatus())) << Qt::endl;
+        out << i18n("Relay key: %1", blockOnReply<QString>(iface.relayKey())) << Qt::endl;
+        out << i18n("Certificate fingerprint: %1", blockOnReply<QString>(iface.selfFingerprint())) << Qt::endl;
+    } else if (parser.isSet(QStringLiteral("connect"))) {
+        if (!blockOnReply<bool>(iface.connectToDevice(parser.value(QStringLiteral("connect"))))) {
+            QTextStream(stderr) << i18n("Not a valid relay key or certificate fingerprint") << Qt::endl;
+            return 1;
+        }
+        QTextStream(stdout) << i18n("Connection requested. Pairing will be requested when the device is reachable; compare the verification key on both devices.")
+                            << Qt::endl;
     } else if (parser.isSet(QStringLiteral("b"))) {
         const QStringList backends = blockOnReply<QStringList>(iface.linkProviders());
         for (const QString &backend : backends) {

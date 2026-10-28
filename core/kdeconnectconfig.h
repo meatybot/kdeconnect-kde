@@ -57,6 +57,10 @@ public:
     void setCustomDevices(const QStringList &addresses);
     QStringList customDevices() const;
 
+    // Relay server address ("host[:port]"), empty if none
+    void setRelayServer(const QString &address);
+    QString relayServer() const;
+
     /*
      * Paths for config files, there is no guarantee the directories already exist
      */

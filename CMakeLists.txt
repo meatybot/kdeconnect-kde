@@ -166,6 +166,11 @@ if(NOT WIN32 AND NOT APPLE)
     add_subdirectory(plasmoid)
 endif()
 
+option(BUILD_RELAY_SERVER "Build the standalone relay server (QtCore and QtNetwork only)" ON)
+if(BUILD_RELAY_SERVER)
+    add_subdirectory(relayserver)
+endif()
+
 ki18n_install(po)
 
 if(BUILD_TESTING)

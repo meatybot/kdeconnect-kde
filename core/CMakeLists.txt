@@ -2,6 +2,7 @@ add_definitions(-DTRANSLATION_DOMAIN=\"kdeconnect-core\")
 
 add_subdirectory(backends/lan)
 add_subdirectory(backends/loopback)
+add_subdirectory(backends/relay)
 
 option(BLUETOOTH_ENABLED "Bluetooth support for kdeconnect" ON)
 if(BLUETOOTH_ENABLED)
@@ -37,6 +38,7 @@ target_sources(kdeconnectcore PRIVATE
     core_debug.cpp
     notificationserverinfo.cpp
     openconfig.cpp
+    connecttargets.cpp
 )
 ecm_qt_declare_logging_category(kdeconnectcore
     HEADER kdeconnect_debug.h

@@ -26,6 +26,7 @@ class KDECONNECTCORE_EXPORT Daemon : public QObject
     Q_CLASSINFO("D-Bus Interface", "org.kde.kdeconnect.daemon")
     Q_PROPERTY(QStringList pairingRequests READ pairingRequests NOTIFY pairingRequestsChanged)
     Q_PROPERTY(QStringList customDevices READ customDevices WRITE setCustomDevices NOTIFY customDevicesChanged)
+    Q_PROPERTY(QString relayServer READ relayServer NOTIFY relayServerChanged)
 
 public:
     explicit Daemon(QObject *parent, bool testMode = false);
@@ -51,6 +52,9 @@ public:
 
     Q_SCRIPTABLE QString selfId() const;
 
+    // Relay server ("host[:port]"), see docs/specs/relay.md
+    QString relayServer() const;
+
 public Q_SLOTS:
     Q_SCRIPTABLE void forceOnNetworkChange();
 
@@ -71,6 +75,18 @@ public Q_SLOTS:
     /// Set the state of a link provider.
     Q_SCRIPTABLE void setLinkProviderState(const QString &linkProvider, bool enabled);
 
+    /// Returns false if the address can't be parsed. An empty address stops using a relay.
+    Q_SCRIPTABLE bool setRelayServer(const QString &address);
+    /// "disabled", "connecting", "registered" or "offline"
+    Q_SCRIPTABLE QString relayStatus() const;
+    /// This device's relay key, empty while not registered on a relay
+    Q_SCRIPTABLE QString relayKey() const;
+    /// SHA-256 fingerprint of this device's certificate
+    Q_SCRIPTABLE QString selfFingerprint() const;
+    /// Connect to and request pairing with the device with this relay key or certificate fingerprint, on LAN or relay.
+    /// Returns false if the target is not a valid key or fingerprint.
+    Q_SCRIPTABLE bool connectToDevice(const QString &target);
+
     Q_SCRIPTABLE virtual void sendSimpleNotification(const QString &eventId, const QString &title, const QString &text, const QString &iconName) = 0;
 
 Q_SIGNALS:
@@ -82,6 +98,9 @@ Q_SIGNALS:
     Q_SCRIPTABLE void pairingRequestsChanged();
     Q_SCRIPTABLE void linkProvidersChanged(const QStringList &linkProviders);
     Q_SCRIPTABLE void customDevicesChanged(const QStringList &customDevices);
+    Q_SCRIPTABLE void relayServerChanged(const QString &relayServer);
+    Q_SCRIPTABLE void relayStatusChanged(const QString &status);
+    Q_SCRIPTABLE void relayKeyChanged(const QString &key);
 
 private Q_SLOTS:
     void onNewDeviceLink(DeviceLink *dl);
