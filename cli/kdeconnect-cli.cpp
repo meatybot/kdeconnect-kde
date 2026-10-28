@@ -79,6 +79,12 @@ int main(int argc, char **argv)
     parser.addOption(QCommandLineOption(QStringLiteral("refresh"), i18n("Search for devices in the network and re-establish connections")));
     parser.addOption(QCommandLineOption(QStringLiteral("pair"), i18n("Request pairing with device")));
     parser.addOption(QCommandLineOption(QStringLiteral("ring"), i18n("Find device by ringing it")));
+    parser.addOption(QCommandLineOption(QStringLiteral("answer-call"), i18n("Answer the call ringing on the device")));
+    parser.addOption(QCommandLineOption(QStringLiteral("call-audio"),
+                                        i18n("Where the audio of an answered call goes: default, speaker or remote (this computer)"),
+                                        QStringLiteral("route")));
+    parser.addOption(QCommandLineOption(QStringLiteral("reject-call"), i18n("Reject the call ringing on the device")));
+    parser.addOption(QCommandLineOption(QStringLiteral("hang-up"), i18n("End the current call on the device")));
     parser.addOption(QCommandLineOption(QStringLiteral("unpair"), i18n("Unpair from device")));
     parser.addOption(QCommandLineOption(QStringLiteral("ping"), i18n("Send ping to device")));
     parser.addOption(QCommandLineOption(QStringLiteral("ping-msg"), i18n("Same as ping but you can set the message to display"), i18n("message")));
@@ -382,6 +388,31 @@ int main(int argc, char **argv)
                                                           QStringLiteral("org.kde.kdeconnect.device.findmyphone"),
                                                           QStringLiteral("ring"));
         blockOnReply(QDBusConnection::sessionBus().asyncCall(msg));
+    } else if (parser.isSet(QStringLiteral("answer-call")) || parser.isSet(QStringLiteral("reject-call")) || parser.isSet(QStringLiteral("hang-up"))) {
+        QString device = getDevice(iface, parser);
+        if (device.isEmpty())
+            return 1;
+
+        QString method;
+        QVariantList args;
+        if (parser.isSet(QStringLiteral("answer-call"))) {
+            method = QStringLiteral("answerCall");
+            args << parser.value(QStringLiteral("call-audio"));
+        } else if (parser.isSet(QStringLiteral("reject-call"))) {
+            method = QStringLiteral("rejectCall");
+        } else {
+            method = QStringLiteral("hangUp");
+        }
+
+        QDBusMessage msg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kdeconnect"),
+                                                          QLatin1String("/modules/kdeconnect/devices/%1/telephony").arg(device),
+                                                          QStringLiteral("org.kde.kdeconnect.device.telephony"),
+                                                          method);
+        msg.setArguments(args);
+        if (!blockOnReply<bool>(QDBusConnection::sessionBus().asyncCall(msg))) {
+            QTextStream(stderr) << i18n("The device does not support this call action") << Qt::endl;
+            return 1;
+        }
     } else if (parser.isSet(QStringLiteral("send-keys"))) {
         QString device = getDevice(iface, parser);
         if (device.isEmpty())

@@ -45,5 +45,9 @@ private:
     void onCallStateChanged(ModemManager::Call *call, MMCallState newState, MMCallState oldState);
     void sendMMTelephonyPacket(ModemManager::Call *call, const QString &state);
     void sendCancelMMTelephonyPacket(ModemManager::Call *call, const QString &lastState);
+    void handleRequestAction(const NetworkPacket &np);
+    void sendActionStatus(const QString &action, const QString &phoneNumber, const QString &error, const QString &audioRoute = QString());
     static QString stateName(MMCallState state);
+
+    QSet<QString> m_watchedVoiceInterfaces;
 };

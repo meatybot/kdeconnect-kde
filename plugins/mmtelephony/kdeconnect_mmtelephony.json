@@ -145,10 +145,12 @@
         "Name[zh_TW]": "ModemManager 電話整合"
     },
     "X-KdeConnect-OutgoingPacketType": [
-        "kdeconnect.telephony"
+        "kdeconnect.telephony",
+        "kdeconnect.telephony.action_status"
     ],
     "X-KdeConnect-SupportedPacketType": [
         "kdeconnect.telephony",
-        "kdeconnect.telephony.request_mute"
+        "kdeconnect.telephony.request_mute",
+        "kdeconnect.telephony.request_action"
     ]
 }
