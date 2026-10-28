@@ -48,6 +48,18 @@ public:
         return ret;
     }
 
+    // Audio requests made for call audio; ignores other plugins' traffic such as the audiostream capability probe
+    QList<NetworkPacket> callAudioRequests() const
+    {
+        QList<NetworkPacket> ret;
+        for (const NetworkPacket &np : sentOfType(QStringLiteral("kdeconnect.audiostream.request"))) {
+            if (np.get<QString>(QStringLiteral("streamId")).startsWith(QStringLiteral("call-"))) {
+                ret.append(np);
+            }
+        }
+        return ret;
+    }
+
     QList<NetworkPacket> sent;
 };
 
@@ -206,7 +218,7 @@ private Q_SLOTS:
         QCOMPARE(spy[0][1].toBool(), false);
         QCOMPARE(spy[0][2].toString(), QStringLiteral("permission_denied"));
         // A failed answer must not start call audio
-        QVERIFY(m_device->sentOfType(AUDIO_REQUEST).isEmpty());
+        QVERIFY(m_device->callAudioRequests().isEmpty());
     }
 
     void testRemoteAudioRequest()
@@ -220,7 +232,7 @@ private Q_SLOTS:
         QVERIFY(answer(plugin, QStringLiteral("remote")));
         QCOMPARE(m_device->sentOfType(REQUEST_ACTION).last().get<QString>(QStringLiteral("audioRoute")), QStringLiteral("remote"));
         // Nothing is requested before the phone confirmed
-        QVERIFY(m_device->sentOfType(AUDIO_REQUEST).isEmpty());
+        QVERIFY(m_device->callAudioRequests().isEmpty());
 
         NetworkPacket status(ACTION_STATUS,
                              {{QStringLiteral("action"), QStringLiteral("answer")},
@@ -230,7 +242,7 @@ private Q_SLOTS:
         // A duplicate status must not start a second stream
         plugin->receivePacket(status);
 
-        auto audio = m_device->sentOfType(AUDIO_REQUEST);
+        auto audio = m_device->callAudioRequests();
         QCOMPARE(audio.size(), 1);
         const NetworkPacket start = audio[0];
         QCOMPARE(start.get<QString>(QStringLiteral("action")), QStringLiteral("start"));
@@ -243,7 +255,7 @@ private Q_SLOTS:
 
         // Call ends on the phone
         plugin->receivePacket(telephonyEvent(QStringLiteral("talking"), true));
-        audio = m_device->sentOfType(AUDIO_REQUEST);
+        audio = m_device->callAudioRequests();
         QCOMPARE(audio.size(), 2);
         QCOMPARE(audio[1].get<QString>(QStringLiteral("action")), QStringLiteral("stop"));
         QCOMPARE(audio[1].get<QString>(QStringLiteral("streamId")), streamId);
@@ -251,7 +263,7 @@ private Q_SLOTS:
         // A status with "default" route (phone could not route remotely) starts nothing
         status.set(QStringLiteral("audioRoute"), QStringLiteral("default"));
         plugin->receivePacket(status);
-        QCOMPARE(m_device->sentOfType(AUDIO_REQUEST).size(), 2);
+        QCOMPARE(m_device->callAudioRequests().size(), 2);
     }
 
 #ifdef HAVE_MMTELEPHONY
