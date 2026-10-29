@@ -87,7 +87,8 @@ void TelephonyPlugin::createNotification(const NetworkPacket &np)
         } else if (id == QLatin1String("answer_speaker")) {
             label = i18n("Answer on Speaker");
         } else if (id == QLatin1String("answer_remote")) {
-            label = i18n("Answer with Audio Here");
+            // Most phones mute other apps' recording during calls, see docs/specs/callhandoff.md
+            label = i18n("Answer on Speaker, Try Audio Here");
         } else if (id == QLatin1String("reject")) {
             label = i18n("Reject");
         } else if (id == QLatin1String("mute")) {

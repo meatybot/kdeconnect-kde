@@ -266,6 +266,39 @@ private Q_SLOTS:
         QCOMPARE(m_device->callAudioRequests().size(), 2);
     }
 
+    // When the phone ends the call stream because Android mutes recording during calls, the user
+    // is told so instead of hearing silence; a plain stop says nothing
+    void testCallAudioSilencedIsReported()
+    {
+        KdeConnectPlugin *plugin = setupPeer({AUDIO_REQUEST}, QStringLiteral("kdeconnect_audiostream"));
+        if (!plugin) {
+            QSKIP("kdeconnect_audiostream is not available");
+        }
+        QString callId;
+        QVERIFY(QMetaObject::invokeMethod(plugin, "requestStream", Q_RETURN_ARG(QString, callId), Q_ARG(QString, QStringLiteral("call"))));
+        QVERIFY(!callId.isEmpty());
+        QString mediaId;
+        QVERIFY(QMetaObject::invokeMethod(plugin, "requestStream", Q_RETURN_ARG(QString, mediaId), Q_ARG(QString, QStringLiteral("media"))));
+        m_daemon->simpleNotifications.clear();
+
+        auto stop = [](const QString &id, const QString &error) {
+            NetworkPacket np(QStringLiteral("kdeconnect.audiostream"), {{QStringLiteral("action"), QStringLiteral("stop")}, {QStringLiteral("streamId"), id}});
+            if (!error.isEmpty()) {
+                np.set(QStringLiteral("error"), error);
+            }
+            return np;
+        };
+        plugin->receivePacket(stop(mediaId, QString()));
+        QVERIFY(m_daemon->simpleNotifications.isEmpty());
+
+        plugin->receivePacket(stop(callId, QStringLiteral("silenced")));
+        QCOMPARE(m_daemon->simpleNotifications.size(), 1);
+        QVERIFY(m_daemon->simpleNotifications.first().second.contains(QStringLiteral("phone calls")));
+        QStringList active;
+        QVERIFY(QMetaObject::invokeMethod(plugin, "activeStreams", Q_RETURN_ARG(QStringList, active)));
+        QVERIFY(active.isEmpty());
+    }
+
 #ifdef HAVE_MMTELEPHONY
     void testCallSelection()
     {

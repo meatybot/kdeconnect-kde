@@ -19,6 +19,7 @@
 #include <QMediaDevices>
 
 #include <core/device.h>
+#include <core/daemon.h>
 
 K_PLUGIN_CLASS_WITH_JSON(AudioStreamPlugin, "kdeconnect_audiostream.json")
 
@@ -45,6 +46,22 @@ QString sourceName(const QString &source)
         return i18nc("audio source", "microphone");
     }
     return source;
+}
+
+// What to tell the user when the device ends a stream we receive, empty when nothing went wrong
+QString remoteStopReason(const QString &error, const QString &source)
+{
+    if (error == Error::Silenced) {
+        return source == Source::Call ? i18n("The device mutes its microphone during phone calls, so the call audio cannot be streamed")
+                                      : i18n("The device stopped sending audio because its system muted the recording");
+    } else if (error == Error::PermissionDenied) {
+        return i18n("The device did not allow the audio stream");
+    } else if (error == Error::CaptureFailed) {
+        return i18n("The device could not record its audio");
+    } else if (error == Error::Timeout) {
+        return i18n("The device did not answer the audio stream request");
+    }
+    return {};
 }
 } // namespace
 
@@ -200,7 +217,16 @@ void AudioStreamPlugin::handleStreamPacket(const NetworkPacket &np)
 
     if (m.action == Action::Stop && error.isEmpty()) {
         const auto it = m_sessions.constFind(m.streamId);
-        if (it != m_sessions.constEnd() && !it->sending) {
+        const bool receiving = it != m_sessions.constEnd() && !it->sending;
+        // The packet and the payload travel on different sockets: the stream may already have
+        // ended through its last frame, the reason is still worth telling
+        if (receiving || it == m_sessions.constEnd()) {
+            const QString reason = remoteStopReason(m.error, receiving ? it->source : m.source);
+            if (!reason.isEmpty()) {
+                Daemon::instance()->sendSimpleNotification(QStringLiteral("audioStream"), device()->name(), reason, QStringLiteral("dialog-warning"));
+            }
+        }
+        if (receiving) {
             endSession(m.streamId, m.error, false);
         }
         return;

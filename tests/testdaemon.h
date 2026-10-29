@@ -43,7 +43,11 @@ public:
     Q_SCRIPTABLE virtual void sendSimpleNotification(const QString &eventId, const QString &title, const QString &text, const QString &iconName) override
     {
         qDebug() << eventId << title << text << iconName;
+        simpleNotifications.append({eventId, text});
     }
+
+    // eventId and text of every sendSimpleNotification() call
+    QList<QPair<QString, QString>> simpleNotifications;
 
     void quit() override
     {

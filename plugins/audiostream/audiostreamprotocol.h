@@ -50,6 +50,8 @@ inline const QString CaptureFailed = QStringLiteral("capture_failed");
 inline const QString PlaybackFailed = QStringLiteral("playback_failed");
 inline const QString Timeout = QStringLiteral("timeout");
 inline const QString InvalidRequest = QStringLiteral("invalid_request");
+// The sender's system mutes the capture, for example Android during a phone call
+inline const QString Silenced = QStringLiteral("silenced");
 } // namespace Error
 
 constexpr int ProtocolVersion = 1;
